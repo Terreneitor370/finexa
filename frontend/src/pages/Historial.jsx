@@ -15,7 +15,7 @@ const Historial = () => {
           <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#85f8c4] shadow-sm bg-[#85f8c4] flex items-center justify-center">
             <span className="material-symbols-outlined text-[#006948]">person</span>
           </div>
-          <h1 className="text-[20px] leading-[28px] font-bold text-[#006948]">Finanzas Intuitivas</h1>
+          <h1 className="text-[20px] leading-[28px] font-bold text-[#006948]">Finexa</h1>
         </div>
         <button className="w-10 h-10 flex items-center justify-center rounded-full text-[#006948] hover:bg-[#eff4ff] transition-colors active:scale-95">
           <span className="material-symbols-outlined">notifications</span>
@@ -155,7 +155,7 @@ const Historial = () => {
       <nav className="fixed bottom-0 left-0 right-0 w-full z-50 flex justify-around items-center px-4 py-3 bg-white/80 backdrop-blur-lg rounded-t-xl shadow-[0px_-4px_12px_rgba(0,0,0,0.05)] border-t border-[#bccac0]/20">
         <Link to="/dashboard" className="flex flex-col items-center justify-center text-[#6d7a72] hover:text-[#006948] transition-colors active:scale-90">
           <span className="material-symbols-outlined mb-1">dashboard</span>
-          <span className="text-[12px] leading-[16px] tracking-[0.05em] font-semibold mt-1">Dashboard</span>
+          <span className="text-[12px] leading-[16px] tracking-[0.05em] font-semibold mt-1">Inicio</span>
         </Link>
         <Link to="/historial" className="flex flex-col items-center justify-center text-[#006948] font-bold transition-transform active:scale-90">
           <span className="material-symbols-outlined mb-1" style={{ fontVariationSettings: "'FILL' 1" }}>history</span>

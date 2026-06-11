@@ -8,6 +8,8 @@ const AgregarGasto = () => {
   const [categoria, setCategoria] = useState('Comida');
   const [fecha, setFecha] = useState('');
   const [nota, setNota] = useState('');
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const categorias = [
     { nombre: 'Comida', icono: 'restaurant' },
@@ -18,14 +20,55 @@ const AgregarGasto = () => {
     { nombre: 'Otros', icono: 'more_horiz' },
   ];
 
-  const handleSubmit = (e) => {
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!monto) {
+      newErrors.monto = 'El monto es obligatorio';
+    } else if (isNaN(monto) || Number(monto) <= 0) {
+      newErrors.monto = 'El monto debe ser un número mayor a 0';
+    } else if (Number(monto) > 9999999) {
+      newErrors.monto = 'El monto no puede superar 9,999,999';
+    }
+    
+    if (!categoria) {
+      newErrors.categoria = 'Selecciona una categoría';
+    }
+    
+    if (!fecha) {
+      newErrors.fecha = 'La fecha es obligatoria';
+    } else {
+      const fechaSeleccionada = new Date(fecha);
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+      if (fechaSeleccionada > hoy) {
+        newErrors.fecha = 'La fecha no puede ser futura';
+      }
+    }
+    
+    if (nota && nota.length > 200) {
+      newErrors.nota = 'La nota no puede exceder los 200 caracteres';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    navigate('/dashboard');
+    if (!validateForm()) return;
+    
+    setLoading(true);
+    // Aquí va la llamada a la API
+    setTimeout(() => {
+      setLoading(false);
+      navigate('/dashboard');
+    }, 500);
   };
 
   return (
     <div className="min-h-screen bg-[#f8f9ff] text-[#0b1c30] pb-32">
-      {/* Top Navigation - Fixed */}
+      {/* Top Navigation */}
       <header className="flex items-center justify-between px-5 h-16 w-full fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md">
         <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#eff4ff] transition-colors active:scale-95">
           <span className="material-symbols-outlined text-[#0b1c30]">arrow_back</span>
@@ -34,25 +77,28 @@ const AgregarGasto = () => {
         <div className="w-10"></div>
       </header>
 
-      {/* Breadcrumbs - Sticky debajo del header */}
       <Breadcrumbs />
 
-      {/* Main content - con padding-top para header + breadcrumbs */}
       <main className="pt-36 px-5 max-w-md mx-auto pb-8">
         {/* Amount Input */}
         <section className="mt-6 flex flex-col items-center">
           <label className="text-[12px] leading-[16px] tracking-[0.05em] font-semibold text-[#3d4a42] uppercase mb-2">Monto del Gasto</label>
-          <div className="w-full flex items-center justify-center bg-white rounded-xl p-6 shadow-[0px_4px_12px_rgba(0,0,0,0.05)] border border-[#bccac0]/10">
+          <div className={`w-full flex items-center justify-center bg-white rounded-xl p-6 shadow-[0px_4px_12px_rgba(0,0,0,0.05)] border ${errors.monto ? 'border-red-500' : 'border-[#bccac0]/10'}`}>
             <span className="text-[40px] leading-[48px] tracking-[-0.02em] font-bold text-[#00855d] mr-2">$</span>
             <input
               type="number"
               value={monto}
-              onChange={(e) => setMonto(e.target.value)}
+              onChange={(e) => {
+                setMonto(e.target.value);
+                if (errors.monto) setErrors({ ...errors, monto: '' });
+              }}
               className="w-full bg-transparent border-none focus:ring-0 text-[40px] leading-[48px] tracking-[-0.02em] font-bold text-[#0b1c30] placeholder:text-[#cbdbf5] text-center outline-none"
               placeholder="0.00"
-              required
+              step="0.01"
+              min="0"
             />
           </div>
+          {errors.monto && <p className="text-red-500 text-xs mt-1">{errors.monto}</p>}
         </section>
 
         {/* Category Grid */}
@@ -66,7 +112,10 @@ const AgregarGasto = () => {
               <button
                 key={cat.nombre}
                 type="button"
-                onClick={() => setCategoria(cat.nombre)}
+                onClick={() => {
+                  setCategoria(cat.nombre);
+                  if (errors.categoria) setErrors({ ...errors, categoria: '' });
+                }}
                 className={`flex flex-col items-center justify-center p-4 rounded-2xl transition-all active:scale-95 ${
                   categoria === cat.nombre
                     ? 'bg-[#006948] text-white'
@@ -84,48 +133,60 @@ const AgregarGasto = () => {
               </button>
             ))}
           </div>
+          {errors.categoria && <p className="text-red-500 text-xs mt-2">{errors.categoria}</p>}
         </section>
 
         {/* Form Details */}
         <section className="mt-6 space-y-4">
           <div>
             <label className="text-[12px] leading-[16px] tracking-[0.05em] font-semibold text-[#3d4a42] block mb-2">Fecha del Gasto</label>
-            <div className="flex items-center bg-[#F1F5F9] rounded-xl px-4 py-4 focus-within:ring-2 focus-within:ring-[#006948] transition-all">
+            <div className={`flex items-center bg-[#F1F5F9] rounded-xl px-4 py-4 focus-within:ring-2 focus-within:ring-[#006948] transition-all ${errors.fecha ? 'ring-2 ring-red-500' : ''}`}>
               <span className="material-symbols-outlined text-[#6d7a72] mr-3">calendar_today</span>
               <input
                 type="date"
                 value={fecha}
-                onChange={(e) => setFecha(e.target.value)}
+                onChange={(e) => {
+                  setFecha(e.target.value);
+                  if (errors.fecha) setErrors({ ...errors, fecha: '' });
+                }}
                 className="bg-transparent border-none focus:ring-0 w-full text-[16px] leading-[24px] text-[#0b1c30] outline-none"
-                required
+                max={new Date().toISOString().split('T')[0]}
               />
             </div>
+            {errors.fecha && <p className="text-red-500 text-xs mt-1">{errors.fecha}</p>}
           </div>
 
           <div>
             <label className="text-[12px] leading-[16px] tracking-[0.05em] font-semibold text-[#3d4a42] block mb-2">Nota (Opcional)</label>
-            <div className="flex items-start bg-[#F1F5F9] rounded-xl px-4 py-4 focus-within:ring-2 focus-within:ring-[#006948] transition-all">
+            <div className={`flex items-start bg-[#F1F5F9] rounded-xl px-4 py-4 focus-within:ring-2 focus-within:ring-[#006948] transition-all ${errors.nota ? 'ring-2 ring-red-500' : ''}`}>
               <span className="material-symbols-outlined text-[#6d7a72] mr-3 mt-0.5">notes</span>
               <textarea
                 value={nota}
-                onChange={(e) => setNota(e.target.value)}
+                onChange={(e) => {
+                  setNota(e.target.value);
+                  if (errors.nota) setErrors({ ...errors, nota: '' });
+                }}
                 className="bg-transparent border-none focus:ring-0 w-full text-[16px] leading-[24px] text-[#0b1c30] resize-none outline-none"
                 placeholder="Ej: Cena con amigos..."
                 rows="2"
+                maxLength="200"
               />
             </div>
+            {errors.nota && <p className="text-red-500 text-xs mt-1">{errors.nota}</p>}
+            {nota && <p className="text-gray-400 text-xs text-right mt-1">{nota.length}/200</p>}
           </div>
         </section>
       </main>
 
-      {/* Save Button - Fixed bottom */}
+      {/* Save Button */}
       <div className="fixed bottom-0 left-0 right-0 w-full p-5 bg-white/80 backdrop-blur-lg border-t border-[#bccac0]/20 z-50">
         <button
           onClick={handleSubmit}
-          className="w-full bg-[#006948] text-white h-14 rounded-full font-bold text-lg flex items-center justify-center shadow-[0px_8px_24px_rgba(0,105,72,0.3)] active:scale-95 transition-transform"
+          disabled={loading}
+          className="w-full bg-[#006948] text-white h-14 rounded-full font-bold text-lg flex items-center justify-center shadow-[0px_8px_24px_rgba(0,105,72,0.3)] active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <span className="material-symbols-outlined mr-2" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-          Guardar Gasto
+          {loading ? 'Guardando...' : 'Guardar Gasto'}
         </button>
       </div>
     </div>

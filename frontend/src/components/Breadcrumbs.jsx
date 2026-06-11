@@ -5,7 +5,7 @@ const Breadcrumbs = () => {
   const pathnames = location.pathname.split('/').filter((x) => x);
 
   const routeNames = {
-    dashboard: 'Dashboard',
+    dashboard: 'Inicio',
     historial: 'Historial',
     'agregar-gasto': 'Agregar Gasto',
     perfil: 'Perfil',
@@ -15,7 +15,7 @@ const Breadcrumbs = () => {
   if (pathnames.length === 0 || (pathnames.length === 1 && pathnames[0] === 'dashboard')) {
     return (
       <div className="px-5 py-3 text-sm bg-white/80 border-b border-[#bccac0]/20 sticky top-16 z-40">
-        <span className="text-[#0b1c30] font-medium">Dashboard</span>
+        <span className="text-[#0b1c30] font-medium">Inicio</span>
       </div>
     );
   }
@@ -23,7 +23,7 @@ const Breadcrumbs = () => {
   return (
     <div className="px-5 py-3 text-sm bg-white/80 border-b border-[#bccac0]/20 sticky top-16 z-40">
       <Link to="/dashboard" className="text-[#006948] hover:underline font-medium">
-        Dashboard
+        Inicio
       </Link>
       {pathnames.map((name, index) => {
         const routeTo = `/${pathnames.slice(0, index + 1).join('/')}`;
