@@ -78,7 +78,6 @@ const deleteExpense = async (req, res) => {
 
 const getSummary = async (req, res) => {
   try {
-    // Solo gastos (amount < 0)
     const [summary] = await pool.query(
       `SELECT category, SUM(ABS(amount)) as total
        FROM expenses
@@ -90,7 +89,7 @@ const getSummary = async (req, res) => {
       [req.userId]
     );
 
-    const [totalRow] = await pool.query(
+    const [totalGastadoRow] = await pool.query(
       `SELECT SUM(ABS(amount)) as total
        FROM expenses
        WHERE user_id = ?
@@ -100,13 +99,28 @@ const getSummary = async (req, res) => {
       [req.userId]
     );
 
+    const [totalIngresosRow] = await pool.query(
+      `SELECT SUM(amount) as total
+       FROM expenses
+       WHERE user_id = ?
+       AND amount > 0
+       AND MONTH(date) = MONTH(CURDATE())
+       AND YEAR(date) = YEAR(CURDATE())`,
+      [req.userId]
+    );
+
+    const totalGastado = parseFloat(totalGastadoRow[0].total) || 0;
+    const totalIngresos = parseFloat(totalIngresosRow[0].total) || 0;
+    const balance = totalIngresos - totalGastado;
+
     res.json({
       categories: summary,
-      total: totalRow[0].total || 0
+      totalGastado,
+      totalIngresos,
+      balance
     });
   } catch (error) {
     res.status(500).json({ message: 'Error en el servidor', error: error.message });
   }
 };
-
 module.exports = { getExpenses, createExpense, updateExpense, deleteExpense, getSummary };
