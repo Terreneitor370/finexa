@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import Breadcrumbs from '../components/Breadcrumbs';
 
 const AgregarGasto = () => {
   const navigate = useNavigate();
@@ -17,31 +18,39 @@ const AgregarGasto = () => {
 
   return (
     <div className="min-h-screen bg-white pb-20">
+      {/* Header */}
       <div className="px-6 pt-8 pb-4 border-b border-gray-100">
         <h1 className="text-3xl font-light text-gray-900">Agregar Gasto</h1>
       </div>
 
-      <div className="px-6 py-3 text-xs text-gray-400 border-b border-gray-100">
-        Dashboard / Agregar Gasto
-      </div>
+      {/* Breadcrumbs */}
+      <Breadcrumbs />
 
+      {/* Formulario */}
       <div className="px-6 py-8">
         <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Monto */}
           <div>
             <label className="block text-gray-400 text-xs mb-2 tracking-wide">
               MONTO DEL GASTO
             </label>
-            <div className="text-4xl font-light text-gray-900">
-              $ <span className="outline-none">0.00</span>
-            </div>
+            <input
+              type="number"
+              value={monto}
+              onChange={(e) => setMonto(e.target.value)}
+              className="text-4xl font-light text-gray-900 outline-none w-full border-b border-gray-200 py-2"
+              placeholder="$ 0.00"
+              required
+            />
           </div>
 
+          {/* Categoría */}
           <div>
             <h2 className="text-gray-800 font-medium mb-3">Categoría</h2>
             <p className="text-gray-400 text-xs mb-3">Selecciona una</p>
             <div className="space-y-2">
               {categorias.map((cat) => (
-                <label key={cat} className="flex items-center">
+                <label key={cat} className="flex items-center cursor-pointer">
                   <input
                     type="radio"
                     name="categoria"
@@ -55,6 +64,7 @@ const AgregarGasto = () => {
             </div>
           </div>
 
+          {/* Fecha */}
           <div>
             <label className="block text-gray-800 text-sm mb-2">
               Fecha del Gasto
@@ -68,6 +78,7 @@ const AgregarGasto = () => {
             />
           </div>
 
+          {/* Nota */}
           <div>
             <label className="block text-gray-800 text-sm mb-2">
               Nota (Opcional)
@@ -81,6 +92,7 @@ const AgregarGasto = () => {
             />
           </div>
 
+          {/* Botón */}
           <button
             type="submit"
             className="w-full bg-black text-white py-3 rounded-md text-sm font-medium mt-8"
@@ -90,6 +102,7 @@ const AgregarGasto = () => {
         </form>
       </div>
 
+      {/* Navegación inferior */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-md">
         <div className="flex justify-around items-center py-3">
           <Link to="/dashboard" className="flex flex-col items-center">

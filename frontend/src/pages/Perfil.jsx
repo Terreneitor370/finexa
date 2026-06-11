@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import Breadcrumbs from '../components/Breadcrumbs';
 
 const Perfil = () => {
   const navigate = useNavigate();
@@ -19,15 +20,17 @@ const Perfil = () => {
 
   return (
     <div className="min-h-screen bg-white pb-20">
+      {/* Header */}
       <div className="px-6 pt-8 pb-4 border-b border-gray-100">
         <h1 className="text-3xl font-light text-gray-900">Perfil</h1>
       </div>
 
-      <div className="px-6 py-3 text-xs text-gray-400 border-b border-gray-100">
-        Dashboard / Perfil
-      </div>
+      {/* Breadcrumbs */}
+      <Breadcrumbs />
 
+      {/* Contenido */}
       <div className="px-6 py-8">
+        {/* Avatar */}
         <div className="flex justify-center mb-8">
           <div className="text-center">
             <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-2">
@@ -38,6 +41,7 @@ const Perfil = () => {
         </div>
 
         <div className="space-y-6">
+          {/* Nombre Completo */}
           <div>
             <label className="block text-gray-400 text-xs mb-1 tracking-wide">
               NOMBRE COMPLETO
@@ -50,6 +54,7 @@ const Perfil = () => {
             />
           </div>
 
+          {/* Teléfono */}
           <div>
             <label className="block text-gray-400 text-xs mb-1 tracking-wide">
               TELÉFONO
@@ -62,6 +67,7 @@ const Perfil = () => {
             />
           </div>
 
+          {/* Tipo de Moneda */}
           <div>
             <label className="block text-gray-400 text-xs mb-1 tracking-wide">
               TIPO DE MONEDA
@@ -79,11 +85,12 @@ const Perfil = () => {
             </select>
           </div>
 
+          {/* Botón Guardar Cambios */}
           <button className="w-full bg-black text-white py-3 rounded-md text-sm font-medium mt-8">
             Guardar Cambios
           </button>
 
-          {/* Cerrar Sesión - más visible */}
+          {/* Cerrar Sesión */}
           <button
             onClick={handleLogout}
             className="w-full bg-red-500 text-white py-3 rounded-md text-sm font-medium mt-4 hover:bg-red-600 transition"
@@ -93,6 +100,7 @@ const Perfil = () => {
         </div>
       </div>
 
+      {/* Navegación inferior */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-md">
         <div className="flex justify-around items-center py-3">
           <Link to="/dashboard" className="flex flex-col items-center">

@@ -60,16 +60,14 @@ const Register = () => {
             />
           </div>
 
-          <div className="flex items-center justify-end">
-            <button
-              type="submit"
-              className="bg-black text-white px-8 py-2 rounded-md text-sm hover:bg-gray-800"
-            >
-              Crear Cuenta
-            </button>
-          </div>
+          <button
+            type="submit"
+            className="w-full bg-black text-white py-2 rounded-md text-sm hover:bg-gray-800"
+          >
+            Crear Cuenta
+          </button>
 
-          <p className="text-center text-gray-500 text-xs mt-8">
+          <p className="text-center text-gray-500 text-xs mt-6">
             ¿Ya tienes cuenta?{' '}
             <Link to="/" className="text-black font-medium">
               Iniciar Sesión

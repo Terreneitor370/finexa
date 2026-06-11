@@ -34,7 +34,7 @@ const Login = () => {
             />
           </div>
 
-          <div className="mb-6">
+          <div className="mb-8">
             <div className="flex justify-between items-end mb-2">
               <label className="text-gray-800 text-xs font-semibold tracking-wide">
                 CONTRASEÑA
@@ -52,17 +52,14 @@ const Login = () => {
             />
           </div>
 
-          <div className="flex items-center justify-between mt-8">
-            <span className="text-xs text-green-600">Connected</span>
-            <button
-              type="submit"
-              className="bg-black text-white px-8 py-2 rounded-md text-sm hover:bg-gray-800"
-            >
-              Iniciar Sesión
-            </button>
-          </div>
+          <button
+            type="submit"
+            className="w-full bg-black text-white py-2 rounded-md text-sm hover:bg-gray-800"
+          >
+            Iniciar Sesión
+          </button>
 
-          <p className="text-center text-gray-500 text-xs mt-8">
+          <p className="text-center text-gray-500 text-xs mt-6">
             ¿No tienes una cuenta?{' '}
             <Link to="/register" className="text-black font-medium">
               Crear cuenta

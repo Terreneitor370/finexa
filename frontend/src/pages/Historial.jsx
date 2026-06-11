@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import Breadcrumbs from '../components/Breadcrumbs';
 
 const Historial = () => {
   const [busqueda, setBusqueda] = useState('');
@@ -9,15 +10,17 @@ const Historial = () => {
 
   return (
     <div className="min-h-screen bg-white pb-20">
+      {/* Header */}
       <div className="px-6 pt-8 pb-4 border-b border-gray-100">
         <h1 className="text-3xl font-light text-gray-900">Finanzas Intuitivas</h1>
       </div>
 
-      <div className="px-6 py-3 text-xs text-gray-400 border-b border-gray-100">
-        Dashboard / Historial
-      </div>
+      {/* Breadcrumbs */}
+      <Breadcrumbs />
 
+      {/* Contenido */}
       <div className="px-6 py-8">
+        {/* Buscador */}
         <div className="mb-8">
           <input
             type="text"
@@ -28,6 +31,7 @@ const Historial = () => {
           />
         </div>
 
+        {/* Filtro de meses */}
         <div className="flex gap-6 mb-8">
           {meses.map((mes) => (
             <button
@@ -44,7 +48,9 @@ const Historial = () => {
           ))}
         </div>
 
+        {/* Lista de gastos */}
         <div className="space-y-6">
+          {/* HOY */}
           <div>
             <h3 className="text-gray-500 text-xs mb-3 tracking-wide">HOY - 24 OCT</h3>
             <div className="space-y-3">
@@ -69,6 +75,7 @@ const Historial = () => {
             </div>
           </div>
 
+          {/* AYER */}
           <div>
             <h3 className="text-gray-500 text-xs mb-3 tracking-wide">AYER - 23 OCT</h3>
             <div className="space-y-3">
@@ -93,6 +100,7 @@ const Historial = () => {
             </div>
           </div>
 
+          {/* 22 OCT */}
           <div>
             <h3 className="text-gray-500 text-xs mb-3 tracking-wide">22 OCT</h3>
             <div>
@@ -108,6 +116,7 @@ const Historial = () => {
         </div>
       </div>
 
+      {/* Navegación inferior */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-md">
         <div className="flex justify-around items-center py-3">
           <Link to="/dashboard" className="flex flex-col items-center">

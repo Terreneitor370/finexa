@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import Breadcrumbs from '../components/Breadcrumbs';
 
 const Dashboard = () => {
   return (
@@ -9,9 +10,7 @@ const Dashboard = () => {
       </div>
 
       {/* Breadcrumbs */}
-      <div className="px-6 py-3 text-xs text-gray-400 border-b border-gray-100">
-        Dashboard
-      </div>
+      <Breadcrumbs />
 
       {/* Contenido */}
       <div className="px-6 py-8">
@@ -93,7 +92,7 @@ const Dashboard = () => {
         <span className="text-2xl">+</span>
       </Link>
 
-      {/* Navegación inferior - más visible */}
+      {/* Navegación inferior */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-md">
         <div className="flex justify-around items-center py-3">
           <Link to="/dashboard" className="flex flex-col items-center">
