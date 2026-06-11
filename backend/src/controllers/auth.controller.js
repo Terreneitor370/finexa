@@ -57,21 +57,21 @@ const register = async (req, res) => {
       { expiresIn: process.env.JWT_EXPIRES_IN || '1h' }
     );
 
-    // Enviar email de bienvenida (no bloqueamos la respuesta si falla)
+// Enviar email de bienvenida (no bloqueamos la respuesta si falla)
     sendWelcomeEmail(name, email).catch(err =>
       console.error('Error enviando email de bienvenida:', err.message)
     );
 
-    res.json({ 
-    token, 
-    user: { 
-    id: user.id, 
-    name: user.name, 
-    email: user.email,
-    phone: user.phone || null,
-    currency: user.currency || 'MXN'
-  } 
-});
+    res.status(201).json({ 
+      token, 
+      user: { 
+        id: result.insertId, 
+        name, 
+        email,
+        phone: null,
+        currency: 'MXN'
+      } 
+    });
   } catch (error) {
     res.status(500).json({ message: 'Error en el servidor', error: error.message });
   }

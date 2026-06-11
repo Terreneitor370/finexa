@@ -5,7 +5,7 @@ import Dashboard from './pages/Dashboard';
 import Historial from './pages/Historial';
 import AgregarGasto from './pages/AgregarGasto';
 import Perfil from './pages/Perfil';
-
+import ResetPassword from './pages/ResetPassword';
 function App() {
   return (
     <Router>
@@ -16,6 +16,7 @@ function App() {
         <Route path="/historial" element={<Historial />} />
         <Route path="/agregar-gasto" element={<AgregarGasto />} />
         <Route path="/perfil" element={<Perfil />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
       </Routes>
     </Router>
   );
