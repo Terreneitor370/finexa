@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import api from '../services/api';
 
 const Login = () => {
   const [isRegister, setIsRegister] = useState(false);
@@ -8,6 +9,7 @@ const Login = () => {
   const [name, setName] = useState('');
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [serverError, setServerError] = useState('');
   const navigate = useNavigate();
 
   const validateEmail = (email) => {
@@ -47,11 +49,18 @@ const Login = () => {
     if (!validateLogin()) return;
     
     setLoading(true);
-    // Aquí va la llamada a la API
-    setTimeout(() => {
-      setLoading(false);
+    setServerError('');
+    
+    try {
+      const response = await api.post('/auth/login', { email, password });
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
       navigate('/dashboard');
-    }, 500);
+    } catch (error) {
+      setServerError(error.response?.data?.message || 'Error al iniciar sesión');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleRegisterSubmit = async (e) => {
@@ -59,23 +68,28 @@ const Login = () => {
     if (!validateRegister()) return;
     
     setLoading(true);
-    // Aquí va la llamada a la API
-    setTimeout(() => {
-      setLoading(false);
+    setServerError('');
+    
+    try {
+      const response = await api.post('/auth/register', { name, email, password });
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
       navigate('/dashboard');
-    }, 500);
+    } catch (error) {
+      setServerError(error.response?.data?.message || 'Error al crear cuenta');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-[#f8f9ff] text-[#0b1c30] flex flex-col justify-center overflow-x-hidden relative">
-      {/* Background Decorative Elements */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-[#006948]/10 blur-[120px]"></div>
         <div className="absolute bottom-[5%] right-[-5%] w-[30%] h-[30%] rounded-full bg-[#4b41e1]/10 blur-[100px]"></div>
       </div>
 
       <main className="w-full max-w-md mx-auto px-5 py-12 flex flex-col items-center">
-        {/* Brand Identity */}
         <div className="mb-12 text-center">
           <div className="w-16 h-16 bg-[#00855d] rounded-2xl flex items-center justify-center mb-6 mx-auto shadow-sm">
             <span className="material-symbols-outlined text-white text-4xl">account_balance_wallet</span>
@@ -86,7 +100,12 @@ const Login = () => {
           </p>
         </div>
 
-        {/* Login Form */}
+        {serverError && (
+          <div className="w-full mb-4 p-3 bg-red-100 text-red-700 rounded-xl text-center text-sm">
+            {serverError}
+          </div>
+        )}
+
         {!isRegister && (
           <form onSubmit={handleLoginSubmit} className="w-full space-y-6">
             <div className="space-y-4">
@@ -157,6 +176,7 @@ const Login = () => {
                   onClick={() => {
                     setIsRegister(true);
                     setErrors({});
+                    setServerError('');
                   }}
                   className="text-[#006948] font-bold hover:underline ml-1"
                 >
@@ -167,7 +187,6 @@ const Login = () => {
           </form>
         )}
 
-        {/* Register Form */}
         {isRegister && (
           <form onSubmit={handleRegisterSubmit} className="w-full space-y-6">
             <div className="space-y-4">
@@ -255,6 +274,7 @@ const Login = () => {
                   onClick={() => {
                     setIsRegister(false);
                     setErrors({});
+                    setServerError('');
                   }}
                   className="text-[#006948] font-bold hover:underline ml-1"
                 >

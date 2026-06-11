@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import api from '../services/api';
 
 const Register = () => {
   const [name, setName] = useState('');
@@ -7,6 +8,7 @@ const Register = () => {
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [serverError, setServerError] = useState('');
   const navigate = useNavigate();
 
   const validateEmail = (email) => {
@@ -48,23 +50,28 @@ const Register = () => {
     if (!validateForm()) return;
     
     setLoading(true);
-    // Aquí va la llamada a la API
-    setTimeout(() => {
-      setLoading(false);
+    setServerError('');
+    
+    try {
+      const response = await api.post('/auth/register', { name, email, password });
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
       navigate('/dashboard');
-    }, 500);
+    } catch (error) {
+      setServerError(error.response?.data?.message || 'Error al crear cuenta');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-[#f8f9ff] text-[#0b1c30] flex flex-col justify-center overflow-x-hidden relative">
-      {/* Background Decorative Elements */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-[#006948]/10 blur-[120px]"></div>
         <div className="absolute bottom-[5%] right-[-5%] w-[30%] h-[30%] rounded-full bg-[#4b41e1]/10 blur-[100px]"></div>
       </div>
 
       <main className="w-full max-w-md mx-auto px-5 py-12 flex flex-col items-center">
-        {/* Brand Identity */}
         <div className="mb-8 text-center">
           <div className="w-16 h-16 bg-[#00855d] rounded-2xl flex items-center justify-center mb-6 mx-auto shadow-sm">
             <span className="material-symbols-outlined text-white text-4xl">account_balance_wallet</span>
@@ -75,9 +82,14 @@ const Register = () => {
           </p>
         </div>
 
+        {serverError && (
+          <div className="w-full mb-4 p-3 bg-red-100 text-red-700 rounded-xl text-center text-sm">
+            {serverError}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="w-full space-y-6">
           <div className="space-y-4">
-            {/* Nombre Completo */}
             <div className="space-y-2">
               <label className="text-[12px] leading-[16px] tracking-[0.05em] font-semibold text-[#3d4a42] px-1 uppercase">
                 Nombre Completo
@@ -100,7 +112,6 @@ const Register = () => {
               {errors.name && <p className="text-red-500 text-xs px-1">{errors.name}</p>}
             </div>
 
-            {/* Correo Electrónico */}
             <div className="space-y-2">
               <label className="text-[12px] leading-[16px] tracking-[0.05em] font-semibold text-[#3d4a42] px-1 uppercase">
                 Correo Electrónico
@@ -123,7 +134,6 @@ const Register = () => {
               {errors.email && <p className="text-red-500 text-xs px-1">{errors.email}</p>}
             </div>
 
-            {/* Contraseña */}
             <div className="space-y-2">
               <label className="text-[12px] leading-[16px] tracking-[0.05em] font-semibold text-[#3d4a42] px-1 uppercase">
                 Contraseña

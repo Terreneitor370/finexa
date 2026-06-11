@@ -11,7 +11,6 @@ const Breadcrumbs = () => {
     perfil: 'Perfil',
   };
 
-  // Si es la página principal (dashboard), mostrar solo "Dashboard"
   if (pathnames.length === 0 || (pathnames.length === 1 && pathnames[0] === 'dashboard')) {
     return (
       <div className="px-5 py-3 text-sm bg-white/80 border-b border-[#bccac0]/20 sticky top-16 z-40">

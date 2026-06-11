@@ -1,15 +1,29 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import api from '../services/api';
 import Breadcrumbs from '../components/Breadcrumbs';
 
 const Perfil = () => {
   const navigate = useNavigate();
-  const [nombre, setNombre] = useState('Alejandro García');
-  const [telefono, setTelefono] = useState('+34 600 000 000');
+  const [nombre, setNombre] = useState('');
+  const [email, setEmail] = useState('');
+  const [telefono, setTelefono] = useState('');
   const [moneda, setMoneda] = useState('EUR');
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
+  const [serverError, setServerError] = useState('');
+
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      const user = JSON.parse(userData);
+      setNombre(user.name || '');
+      setEmail(user.email || '');
+      setTelefono(user.phone || '');
+      setMoneda(user.currency || 'EUR');
+    }
+  }, []);
 
   const validateForm = () => {
     const newErrors = {};
@@ -41,16 +55,28 @@ const Perfil = () => {
     if (!validateForm()) return;
     
     setLoading(true);
+    setServerError('');
     setSuccess('');
-    // Aquí va la llamada a la API
-    setTimeout(() => {
-      setLoading(false);
+    
+    try {
+      const response = await api.put('/user/profile', { 
+        name: nombre, 
+        phone: telefono, 
+        currency: moneda 
+      });
+      localStorage.setItem('user', JSON.stringify(response.data.user));
       setSuccess('Cambios guardados correctamente');
       setTimeout(() => setSuccess(''), 3000);
-    }, 500);
+    } catch (error) {
+      setServerError(error.response?.data?.message || 'Error al guardar cambios');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
     navigate('/');
   };
 
@@ -69,7 +95,6 @@ const Perfil = () => {
       <Breadcrumbs />
 
       <main className="pt-36 px-5 flex flex-col gap-6 pb-8">
-        {/* Profile Picture */}
         <section className="flex flex-col items-center justify-center gap-2 py-4">
           <div className="relative group">
             <div className="w-32 h-32 rounded-full overflow-hidden shadow-[0px_4px_12px_rgba(0,0,0,0.05)] border-4 border-white bg-[#dce9ff] flex items-center justify-center">
@@ -81,17 +106,22 @@ const Perfil = () => {
           </div>
           <div className="text-center mt-2">
             <h2 className="text-[20px] leading-[28px] font-bold text-[#0b1c30]">{nombre}</h2>
+            <p className="text-[14px] text-[#6d7a72]">{email}</p>
           </div>
         </section>
 
-        {/* Success Message */}
         {success && (
           <div className="bg-green-100 text-green-700 p-3 rounded-xl text-center text-sm">
             {success}
           </div>
         )}
 
-        {/* Form Fields */}
+        {serverError && (
+          <div className="bg-red-100 text-red-700 p-3 rounded-xl text-center text-sm">
+            {serverError}
+          </div>
+        )}
+
         <section className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
             <label className="text-[12px] leading-[16px] tracking-[0.05em] font-semibold text-[#3d4a42] px-1">NOMBRE COMPLETO</label>
@@ -147,7 +177,6 @@ const Perfil = () => {
           </div>
         </section>
 
-        {/* Actions */}
         <section className="flex flex-col gap-4 mt-4">
           <button
             onClick={handleSave}
@@ -166,7 +195,6 @@ const Perfil = () => {
         </section>
       </main>
 
-      {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 w-full z-50 flex justify-around items-center px-4 py-3 bg-white/80 backdrop-blur-lg rounded-t-xl shadow-[0px_-4px_12px_rgba(0,0,0,0.05)] border-t border-[#bccac0]/20">
         <Link to="/dashboard" className="flex flex-col items-center justify-center text-[#6d7a72] hover:text-[#006948] transition-colors active:scale-90">
           <span className="material-symbols-outlined mb-1">dashboard</span>

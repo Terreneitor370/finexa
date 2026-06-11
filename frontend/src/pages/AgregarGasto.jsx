@@ -1,15 +1,17 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import api from '../services/api';
 import Breadcrumbs from '../components/Breadcrumbs';
 
 const AgregarGasto = () => {
   const navigate = useNavigate();
   const [monto, setMonto] = useState('');
   const [categoria, setCategoria] = useState('Comida');
-  const [fecha, setFecha] = useState('');
-  const [nota, setNota] = useState('');
+  const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
+  const [descripcion, setDescripcion] = useState('');
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [serverError, setServerError] = useState('');
 
   const categorias = [
     { nombre: 'Comida', icono: 'restaurant' },
@@ -46,8 +48,8 @@ const AgregarGasto = () => {
       }
     }
     
-    if (nota && nota.length > 200) {
-      newErrors.nota = 'La nota no puede exceder los 200 caracteres';
+    if (descripcion && descripcion.length > 200) {
+      newErrors.descripcion = 'La descripción no puede exceder los 200 caracteres';
     }
     
     setErrors(newErrors);
@@ -59,16 +61,25 @@ const AgregarGasto = () => {
     if (!validateForm()) return;
     
     setLoading(true);
-    // Aquí va la llamada a la API
-    setTimeout(() => {
-      setLoading(false);
+    setServerError('');
+    
+    try {
+      await api.post('/expenses', {
+        amount: parseFloat(monto),
+        category: categoria,
+        date: fecha,
+        description: descripcion || undefined
+      });
       navigate('/dashboard');
-    }, 500);
+    } catch (error) {
+      setServerError(error.response?.data?.message || 'Error al guardar el gasto');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-[#f8f9ff] text-[#0b1c30] pb-32">
-      {/* Top Navigation */}
       <header className="flex items-center justify-between px-5 h-16 w-full fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md">
         <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#eff4ff] transition-colors active:scale-95">
           <span className="material-symbols-outlined text-[#0b1c30]">arrow_back</span>
@@ -80,7 +91,12 @@ const AgregarGasto = () => {
       <Breadcrumbs />
 
       <main className="pt-36 px-5 max-w-md mx-auto pb-8">
-        {/* Amount Input */}
+        {serverError && (
+          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-xl text-center text-sm">
+            {serverError}
+          </div>
+        )}
+
         <section className="mt-6 flex flex-col items-center">
           <label className="text-[12px] leading-[16px] tracking-[0.05em] font-semibold text-[#3d4a42] uppercase mb-2">Monto del Gasto</label>
           <div className={`w-full flex items-center justify-center bg-white rounded-xl p-6 shadow-[0px_4px_12px_rgba(0,0,0,0.05)] border ${errors.monto ? 'border-red-500' : 'border-[#bccac0]/10'}`}>
@@ -101,7 +117,6 @@ const AgregarGasto = () => {
           {errors.monto && <p className="text-red-500 text-xs mt-1">{errors.monto}</p>}
         </section>
 
-        {/* Category Grid */}
         <section className="mt-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-[20px] leading-[28px] font-bold">Categoría</h2>
@@ -136,7 +151,6 @@ const AgregarGasto = () => {
           {errors.categoria && <p className="text-red-500 text-xs mt-2">{errors.categoria}</p>}
         </section>
 
-        {/* Form Details */}
         <section className="mt-6 space-y-4">
           <div>
             <label className="text-[12px] leading-[16px] tracking-[0.05em] font-semibold text-[#3d4a42] block mb-2">Fecha del Gasto</label>
@@ -158,13 +172,13 @@ const AgregarGasto = () => {
 
           <div>
             <label className="text-[12px] leading-[16px] tracking-[0.05em] font-semibold text-[#3d4a42] block mb-2">Nota (Opcional)</label>
-            <div className={`flex items-start bg-[#F1F5F9] rounded-xl px-4 py-4 focus-within:ring-2 focus-within:ring-[#006948] transition-all ${errors.nota ? 'ring-2 ring-red-500' : ''}`}>
+            <div className={`flex items-start bg-[#F1F5F9] rounded-xl px-4 py-4 focus-within:ring-2 focus-within:ring-[#006948] transition-all ${errors.descripcion ? 'ring-2 ring-red-500' : ''}`}>
               <span className="material-symbols-outlined text-[#6d7a72] mr-3 mt-0.5">notes</span>
               <textarea
-                value={nota}
+                value={descripcion}
                 onChange={(e) => {
-                  setNota(e.target.value);
-                  if (errors.nota) setErrors({ ...errors, nota: '' });
+                  setDescripcion(e.target.value);
+                  if (errors.descripcion) setErrors({ ...errors, descripcion: '' });
                 }}
                 className="bg-transparent border-none focus:ring-0 w-full text-[16px] leading-[24px] text-[#0b1c30] resize-none outline-none"
                 placeholder="Ej: Cena con amigos..."
@@ -172,13 +186,12 @@ const AgregarGasto = () => {
                 maxLength="200"
               />
             </div>
-            {errors.nota && <p className="text-red-500 text-xs mt-1">{errors.nota}</p>}
-            {nota && <p className="text-gray-400 text-xs text-right mt-1">{nota.length}/200</p>}
+            {errors.descripcion && <p className="text-red-500 text-xs mt-1">{errors.descripcion}</p>}
+            {descripcion && <p className="text-gray-400 text-xs text-right mt-1">{descripcion.length}/200</p>}
           </div>
         </section>
       </main>
 
-      {/* Save Button */}
       <div className="fixed bottom-0 left-0 right-0 w-full p-5 bg-white/80 backdrop-blur-lg border-t border-[#bccac0]/20 z-50">
         <button
           onClick={handleSubmit}
