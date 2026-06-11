@@ -1,91 +1,64 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import Breadcrumbs from '../components/Breadcrumbs';
 
 const Perfil = () => {
   const navigate = useNavigate();
-  const [nombre, setNombre] = useState('');
-  const [email, setEmail] = useState('');
-  const [telefono, setTelefono] = useState('');
-  const [moneda, setMoneda] = useState('EUR');
+
+  const getUserData = () => {
+    try {
+      const userData = localStorage.getItem('user');
+      if (userData && userData !== 'undefined') return JSON.parse(userData);
+    } catch {
+      return {};
+    }
+    return {};
+  };
+
+  const user = getUserData();
+  const [nombre, setNombre] = useState(user.name || '');
+  const [email] = useState(user.email || '');
+  const [moneda, setMoneda] = useState(user.currency || 'MXN');
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
   const [serverError, setServerError] = useState('');
 
-  useEffect(() => {
-    cargarDatosUsuario();
-  }, []);
-
-  const cargarDatosUsuario = () => {
-    const userData = localStorage.getItem('user');
-    if (userData && userData !== 'undefined') {
-      try {
-        const user = JSON.parse(userData);
-        setNombre(user.name || '');
-        setEmail(user.email || '');
-        setTelefono(user.phone || '');
-        setMoneda(user.currency || 'EUR');
-      } catch (e) {
-        console.error('Error parsing user data:', e);
-      }
-    }
-  };
-
   const validateForm = () => {
     const newErrors = {};
-    
     if (!nombre) {
       newErrors.nombre = 'El nombre es obligatorio';
     } else if (nombre.length < 2) {
       newErrors.nombre = 'El nombre debe tener al menos 2 caracteres';
     } else if (nombre.length > 100) {
       newErrors.nombre = 'El nombre no puede exceder 100 caracteres';
+    } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(nombre)) {
+      newErrors.nombre = 'El nombre solo puede contener letras';
     }
-    
-    if (telefono) {
-      const telefonoLimpio = telefono.replace(/[\s\+\-\(\)]/g, '');
-      if (telefonoLimpio.length < 8) {
-        newErrors.telefono = 'El teléfono debe tener al menos 8 dígitos';
-      } else if (telefonoLimpio.length > 15) {
-        newErrors.telefono = 'El teléfono no puede exceder 15 dígitos';
-      } else if (!/^\d+$/.test(telefonoLimpio)) {
-        newErrors.telefono = 'El teléfono solo debe contener números';
-      }
-    }
-    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSave = async () => {
     if (!validateForm()) return;
-    
     setLoading(true);
     setServerError('');
     setSuccess('');
-    
     try {
-      const telefonoLimpio = telefono ? telefono.replace(/[\s\+\-\(\)]/g, '') : '';
-      const response = await api.put('/auth/profile', { 
-        name: nombre, 
-        phone: telefonoLimpio, 
+      await api.put('/auth/profile', { 
+        name: nombre,
+        phone: null,
         currency: moneda 
       });
-      
       const userActualizado = {
         ...JSON.parse(localStorage.getItem('user') || '{}'),
         name: nombre,
-        phone: telefonoLimpio,
         currency: moneda
       };
       localStorage.setItem('user', JSON.stringify(userActualizado));
-      
       setSuccess('Cambios guardados correctamente');
-      setTimeout(() => setSuccess(''), 3000);
     } catch (error) {
-      console.log('Error completo:', error.response?.data);
       setServerError(error.response?.data?.message || 'Error al guardar cambios');
     } finally {
       setLoading(false);
@@ -105,18 +78,15 @@ const Perfil = () => {
           arrow_back
         </button>
         <span>Perfil</span>
-        {/* Botón de settings ELIMINADO */}
+        <div className="w-10" />
       </header>
 
       <Breadcrumbs />
 
       <main className="pt-36 px-5 flex flex-col gap-6 pb-8">
         <section className="flex flex-col items-center justify-center gap-2 py-4">
-          <div className="relative group">
-            <div className="w-32 h-32 rounded-full overflow-hidden shadow-[0px_4px_12px_rgba(0,0,0,0.05)] border-4 border-white bg-[#dce9ff] flex items-center justify-center">
-              <span className="material-symbols-outlined text-[#006948] text-6xl">person</span>
-            </div>
-            {/* Botón de editar foto ELIMINADO */}
+          <div className="w-32 h-32 rounded-full overflow-hidden shadow-[0px_4px_12px_rgba(0,0,0,0.05)] border-4 border-white bg-[#dce9ff] flex items-center justify-center">
+            <span className="material-symbols-outlined text-[#006948] text-6xl">person</span>
           </div>
           <div className="text-center mt-2">
             <h2 className="text-[20px] leading-[28px] font-bold text-[#0b1c30]">{nombre}</h2>
@@ -153,24 +123,6 @@ const Perfil = () => {
               />
             </div>
             {errors.nombre && <p className="text-red-500 text-xs px-1">{errors.nombre}</p>}
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[12px] leading-[16px] tracking-[0.05em] font-semibold text-[#3d4a42] px-1">TELÉFONO</label>
-            <div className={`bg-[#F1F5F9] rounded-xl px-4 py-3.5 flex items-center gap-3 focus-within:ring-2 focus-within:ring-[#006948] transition-all ${errors.telefono ? 'ring-2 ring-red-500' : ''}`}>
-              <span className="material-symbols-outlined text-[#6d7a72]">call</span>
-              <input
-                type="tel"
-                value={telefono}
-                onChange={(e) => {
-                  setTelefono(e.target.value);
-                  if (errors.telefono) setErrors({ ...errors, telefono: '' });
-                }}
-                className="bg-transparent border-none focus:ring-0 w-full text-[16px] leading-[24px] text-[#0b1c30] outline-none"
-                placeholder="+00 000 000 000"
-              />
-            </div>
-            {errors.telefono && <p className="text-red-500 text-xs px-1">{errors.telefono}</p>}
           </div>
 
           <div className="flex flex-col gap-1.5">
