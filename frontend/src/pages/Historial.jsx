@@ -8,43 +8,50 @@ const Historial = () => {
   const [busqueda, setBusqueda] = useState('');
   const [loading, setLoading] = useState(true);
   const [serverError, setServerError] = useState('');
+  const [currencySymbol] = useState(() => {
+    const userData = localStorage.getItem('user');
+    if (!userData) return '$';
+    const user = JSON.parse(userData);
+    const symbols = { MXN: '$', USD: '$', EUR: '€' };
+    return symbols[user.currency] || '$';
+  });
 
   useEffect(() => {
-    fetchGastos();
-  }, []);
+    const loadGastos = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get('/expenses');
+        setGastos(response.data || []);
+      } catch (error) {
+        setServerError(error.response?.data?.message || 'Error al cargar los gastos');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const fetchGastos = async () => {
-    try {
-      setLoading(true);
-      const response = await api.get('/expenses');
-      setGastos(response.data || []);
-    } catch (error) {
-      setServerError(error.response?.data?.message || 'Error al cargar los gastos');
-    } finally {
-      setLoading(false);
-    }
-  };
+    loadGastos();
+  }, []);
 
   const getCategoryIcon = (category) => {
     const icons = {
-      'Comida': 'restaurant',
-      'Transporte': 'directions_car',
-      'Hogar': 'home',
-      'Ocio': 'theater_comedy',
-      'Salud': 'medical_services',
-      'Otros': 'more_horiz',
-      'ingreso': 'payments'
+      'comida': 'restaurant',
+      'transporte': 'directions_car',
+      'hogar': 'home',
+      'entretenimiento': 'theater_comedy',
+      'salud': 'medical_services',
+      'ropa': 'checkroom',
+      'educacion': 'school',
+      'ingreso': 'payments',
+      'otro': 'more_horiz'
     };
-    return icons[category] || 'payments';
+    return icons[category?.toLowerCase()] || 'payments';
   };
 
-  // Filtrar gastos por búsqueda
   const gastosFiltrados = gastos.filter(gasto =>
     gasto.description?.toLowerCase().includes(busqueda.toLowerCase()) ||
     gasto.category?.toLowerCase().includes(busqueda.toLowerCase())
   );
 
-  // Agrupar gastos por fecha
   const gastosAgrupados = gastosFiltrados.reduce((grupo, gasto) => {
     const fecha = new Date(gasto.date).toLocaleDateString('es-ES', {
       day: 'numeric',
@@ -73,9 +80,6 @@ const Historial = () => {
           </div>
           <h1 className="text-[20px] leading-[28px] font-bold text-[#006948]">Finexa</h1>
         </div>
-        <button className="w-10 h-10 flex items-center justify-center rounded-full text-[#006948] hover:bg-[#eff4ff] transition-colors active:scale-95">
-          <span className="material-symbols-outlined">notifications</span>
-        </button>
       </header>
 
       <Breadcrumbs />
@@ -106,10 +110,10 @@ const Historial = () => {
               <h2 className="text-[12px] leading-[16px] tracking-[0.05em] font-semibold text-[#3d4a42] mb-3 px-1">{fecha}</h2>
               <div className="space-y-3">
                 {gastosDelDia.map((gasto) => {
-                  const esIngreso = gasto.category === 'ingreso';
-                  const montoAbs = Math.abs(gasto.amount);
+                  const esIngreso = parseFloat(gasto.amount) > 0;
+                  const montoAbs = Math.abs(parseFloat(gasto.amount));
                   return (
-                    <div key={gasto._id} className="bg-white rounded-xl p-4 flex items-center justify-between shadow-[0px_4px_12px_rgba(0,0,0,0.05)]">
+                    <div key={gasto.id} className="bg-white rounded-xl p-4 flex items-center justify-between shadow-[0px_4px_12px_rgba(0,0,0,0.05)]">
                       <div className="flex items-center gap-4 flex-1">
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center ${esIngreso ? 'bg-green-100' : 'bg-[#85f8c4]/30'}`}>
                           <span className={`material-symbols-outlined ${esIngreso ? 'text-green-600' : 'text-[#006948]'}`}>
@@ -118,11 +122,11 @@ const Historial = () => {
                         </div>
                         <div>
                           <h3 className="text-[16px] leading-[24px] font-semibold capitalize">{gasto.description || gasto.category}</h3>
-                          <p className="text-[12px] leading-[16px] text-[#6d7a72]">{gasto.category}</p>
+                          <p className="text-[12px] leading-[16px] text-[#6d7a72] capitalize">{gasto.category}</p>
                         </div>
                       </div>
                       <div className={`text-[18px] leading-[24px] tracking-[-0.01em] font-semibold ${esIngreso ? 'text-green-600' : 'text-red-500'}`}>
-                        {esIngreso ? '+' : '-'}${montoAbs.toLocaleString()}
+                        {esIngreso ? '+' : '-'}{currencySymbol}{montoAbs.toLocaleString()}
                       </div>
                     </div>
                   );
