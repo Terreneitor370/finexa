@@ -11,13 +11,18 @@ const Breadcrumbs = () => {
     perfil: 'Perfil',
   };
 
-  if (pathnames.length === 0 || pathnames[0] === '') {
-    return null;
+  // Si es la página principal (dashboard), mostrar solo "Dashboard"
+  if (pathnames.length === 0 || (pathnames.length === 1 && pathnames[0] === 'dashboard')) {
+    return (
+      <div className="px-5 py-3 text-sm bg-white/80 border-b border-[#bccac0]/20 sticky top-16 z-40">
+        <span className="text-[#0b1c30] font-medium">Dashboard</span>
+      </div>
+    );
   }
 
   return (
-    <div className="px-6 py-3 text-xs text-gray-400 border-b border-gray-100">
-      <Link to="/dashboard" className="hover:text-gray-600">
+    <div className="px-5 py-3 text-sm bg-white/80 border-b border-[#bccac0]/20 sticky top-16 z-40">
+      <Link to="/dashboard" className="text-[#006948] hover:underline font-medium">
         Dashboard
       </Link>
       {pathnames.map((name, index) => {
@@ -27,11 +32,11 @@ const Breadcrumbs = () => {
 
         return (
           <span key={name}>
-            <span className="mx-1">/</span>
+            <span className="mx-1 text-[#6d7a72]">/</span>
             {isLast ? (
-              <span className="text-gray-600">{displayName}</span>
+              <span className="text-[#0b1c30] font-medium">{displayName}</span>
             ) : (
-              <Link to={routeTo} className="hover:text-gray-600">
+              <Link to={routeTo} className="text-[#006948] hover:underline font-medium">
                 {displayName}
               </Link>
             )}
