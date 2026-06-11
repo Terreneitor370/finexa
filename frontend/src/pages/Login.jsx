@@ -250,7 +250,7 @@ const Login = () => {
                       if (errors.password) setErrors({ ...errors, password: '' });
                     }}
                     className="w-full bg-transparent border-none outline-none px-3 py-4 text-[16px] leading-[24px] text-[#0b1c30] placeholder:text-[#6d7a72]/50"
-                    placeholder="Mínimo 6 caracteres"
+                    placeholder="Mínimo 8 caracteres"
                   />
                 </div>
                 {errors.password && <p className="text-red-500 text-xs px-1">{errors.password}</p>}
