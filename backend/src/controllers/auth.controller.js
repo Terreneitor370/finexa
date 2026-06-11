@@ -235,6 +235,12 @@ const resetPassword = async (req, res) => {
     }
 
     const reset = resets[0];
+    // Verificar que la nueva contraseña sea diferente
+    const [userRows] = await pool.query('SELECT password FROM users WHERE email = ?', [reset.email]);
+    const isSamePassword = await bcrypt.compare(password, userRows[0].password);
+    if (isSamePassword) {
+      return res.status(400).json({ message: 'La nueva contraseña debe ser diferente a la anterior' });
+    }
     const hashedPassword = await bcrypt.hash(password, 10);
 
     await pool.query('UPDATE users SET password = ? WHERE email = ?', [hashedPassword, reset.email]);
