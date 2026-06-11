@@ -74,7 +74,6 @@ const Perfil = () => {
         currency: moneda 
       });
       
-      // Actualizar localStorage con los datos guardados
       const userActualizado = {
         ...JSON.parse(localStorage.getItem('user') || '{}'),
         name: nombre,
@@ -106,9 +105,7 @@ const Perfil = () => {
           arrow_back
         </button>
         <span>Perfil</span>
-        <button className="material-symbols-outlined active:scale-95 transition-transform text-[#3d4a42]">
-          settings
-        </button>
+        {/* Botón de settings ELIMINADO */}
       </header>
 
       <Breadcrumbs />
@@ -119,9 +116,7 @@ const Perfil = () => {
             <div className="w-32 h-32 rounded-full overflow-hidden shadow-[0px_4px_12px_rgba(0,0,0,0.05)] border-4 border-white bg-[#dce9ff] flex items-center justify-center">
               <span className="material-symbols-outlined text-[#006948] text-6xl">person</span>
             </div>
-            <button className="absolute bottom-0 right-0 bg-[#006948] text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform">
-              <span className="material-symbols-outlined text-sm">edit</span>
-            </button>
+            {/* Botón de editar foto ELIMINADO */}
           </div>
           <div className="text-center mt-2">
             <h2 className="text-[20px] leading-[28px] font-bold text-[#0b1c30]">{nombre}</h2>

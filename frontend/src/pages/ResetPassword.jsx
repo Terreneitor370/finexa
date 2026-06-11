@@ -9,6 +9,8 @@ const ResetPassword = () => {
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
@@ -94,7 +96,7 @@ const ResetPassword = () => {
             <div className={`bg-[#F1F5F9] rounded-xl px-4 py-3.5 flex items-center gap-3 focus-within:ring-2 focus-within:ring-[#006948] transition-all ${errors.password ? 'ring-2 ring-red-500' : ''}`}>
               <span className="material-symbols-outlined text-[#6d7a72]">lock</span>
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value);
@@ -103,6 +105,15 @@ const ResetPassword = () => {
                 className="bg-transparent border-none focus:ring-0 w-full text-[16px] text-[#0b1c30] outline-none"
                 placeholder="Mínimo 8 caracteres"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="text-[#6d7a72] hover:text-[#006948] transition-colors"
+              >
+                <span className="material-symbols-outlined text-[20px]">
+                  {showPassword ? 'visibility_off' : 'visibility'}
+                </span>
+              </button>
             </div>
             {errors.password && <p className="text-red-500 text-xs px-1">{errors.password}</p>}
           </div>
@@ -114,7 +125,7 @@ const ResetPassword = () => {
             <div className={`bg-[#F1F5F9] rounded-xl px-4 py-3.5 flex items-center gap-3 focus-within:ring-2 focus-within:ring-[#006948] transition-all ${errors.confirmPassword ? 'ring-2 ring-red-500' : ''}`}>
               <span className="material-symbols-outlined text-[#6d7a72]">lock</span>
               <input
-                type="password"
+                type={showConfirmPassword ? 'text' : 'password'}
                 value={confirmPassword}
                 onChange={(e) => {
                   setConfirmPassword(e.target.value);
@@ -123,6 +134,15 @@ const ResetPassword = () => {
                 className="bg-transparent border-none focus:ring-0 w-full text-[16px] text-[#0b1c30] outline-none"
                 placeholder="Repite tu contraseña"
               />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="text-[#6d7a72] hover:text-[#006948] transition-colors"
+              >
+                <span className="material-symbols-outlined text-[20px]">
+                  {showConfirmPassword ? 'visibility_off' : 'visibility'}
+                </span>
+              </button>
             </div>
             {errors.confirmPassword && <p className="text-red-500 text-xs px-1">{errors.confirmPassword}</p>}
           </div>

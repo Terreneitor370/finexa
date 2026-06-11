@@ -73,9 +73,7 @@ const Historial = () => {
           </div>
           <h1 className="text-[20px] leading-[28px] font-bold text-[#006948]">Finexa</h1>
         </div>
-        <button className="w-10 h-10 flex items-center justify-center rounded-full text-[#006948] hover:bg-[#eff4ff] transition-colors active:scale-95">
-          <span className="material-symbols-outlined">notifications</span>
-        </button>
+        {/* Botón de campanita ELIMINADO */}
       </header>
 
       <Breadcrumbs />

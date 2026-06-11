@@ -1,15 +1,21 @@
 import { Link, useLocation } from 'react-router-dom';
 
-const Breadcrumbs = () => {
+const Breadcrumbs = ({ customTitle }) => {
   const location = useLocation();
   const pathnames = location.pathname.split('/').filter((x) => x);
 
   const routeNames = {
     dashboard: 'Inicio',
     historial: 'Historial',
-    'agregar-gasto': 'Agregar Gasto',
+    'agregar-gasto': customTitle || 'Agregar',  // Usa el título personalizado si existe
     perfil: 'Perfil',
   };
+
+  // Si hay un título personalizado, usarlo para la última ruta
+  if (customTitle && pathnames.length > 0) {
+    const lastRoute = pathnames[pathnames.length - 1];
+    routeNames[lastRoute] = customTitle;
+  }
 
   if (pathnames.length === 0 || (pathnames.length === 1 && pathnames[0] === 'dashboard')) {
     return (

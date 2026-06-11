@@ -55,27 +55,21 @@ const AgregarGasto = () => {
     try {
       const montoNumerico = parseFloat(monto);
       
-      // FORZAR: Ingreso = POSITIVO, Gasto = NEGATIVO
       let amount;
       if (tipo === 'ingreso') {
-        amount = Math.abs(montoNumerico);  // ✅ Fuerza positivo
+        amount = Math.abs(montoNumerico);
       } else {
-        amount = -Math.abs(montoNumerico); // ✅ Fuerza negativo
+        amount = -Math.abs(montoNumerico);
       }
       
       const category = tipo === 'ingreso' ? 'ingreso' : categoria;
             
-      const response = await api.post('/expenses', {
+      await api.post('/expenses', {
         amount: amount,
         category: category,
         date: fecha,
         description: descripcion || undefined
       });
-            
-      // Verificar que se guardó correctamente
-      if (response.data && response.data.amount) {
-        console.log('Monto guardado en BD:', response.data.amount);
-      }
       
       navigate('/dashboard');
     } catch (error) {
@@ -87,17 +81,21 @@ const AgregarGasto = () => {
     }
   };
 
+  // Título dinámico según el tipo
+  const tituloBreadcrumb = tipo === 'ingreso' ? 'Agregar Ingreso' : 'Agregar Gasto';
+
   return (
     <div className="min-h-screen bg-[#f8f9ff] text-[#0b1c30] pb-32">
       <header className="flex items-center justify-between px-5 h-16 w-full fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md">
         <button onClick={() => navigate(-1)} className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#eff4ff] transition-colors active:scale-95">
           <span className="material-symbols-outlined text-[#0b1c30]">arrow_back</span>
         </button>
-        <h1 className="text-[20px] leading-[28px] font-bold text-[#006948]">Agregar</h1>
+        <h1 className="text-[20px] leading-[28px] font-bold text-[#006948]">{tituloBreadcrumb}</h1>
         <div className="w-10"></div>
       </header>
 
-      <Breadcrumbs />
+      {/* Breadcrumbs con título personalizado */}
+      <Breadcrumbs customTitle={tituloBreadcrumb} />
 
       <main className="pt-36 px-5 max-w-md mx-auto pb-8">
         {serverError && (
@@ -121,7 +119,7 @@ const AgregarGasto = () => {
                   : 'bg-gray-100 text-gray-500'
               }`}
             >
-               Gasto
+              Gasto
             </button>
             <button
               type="button"
@@ -134,7 +132,7 @@ const AgregarGasto = () => {
                   : 'bg-gray-100 text-gray-500'
               }`}
             >
-               Ingreso
+              Ingreso
             </button>
           </div>
         </section>
