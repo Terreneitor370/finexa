@@ -15,15 +15,23 @@ const Perfil = () => {
   const [serverError, setServerError] = useState('');
 
   useEffect(() => {
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      const user = JSON.parse(userData);
-      setNombre(user.name || '');
-      setEmail(user.email || '');
-      setTelefono(user.phone || '');
-      setMoneda(user.currency || 'EUR');
-    }
+    cargarDatosUsuario();
   }, []);
+
+  const cargarDatosUsuario = () => {
+    const userData = localStorage.getItem('user');
+    if (userData && userData !== 'undefined') {
+      try {
+        const user = JSON.parse(userData);
+        setNombre(user.name || '');
+        setEmail(user.email || '');
+        setTelefono(user.phone || '');
+        setMoneda(user.currency || 'EUR');
+      } catch (e) {
+        console.error('Error parsing user data:', e);
+      }
+    }
+  };
 
   const validateForm = () => {
     const newErrors = {};
@@ -59,15 +67,26 @@ const Perfil = () => {
     setSuccess('');
     
     try {
-      const response = await api.put('/user/profile', { 
+      const telefonoLimpio = telefono ? telefono.replace(/[\s\+\-\(\)]/g, '') : '';
+      const response = await api.put('/auth/profile', { 
         name: nombre, 
-        phone: telefono, 
+        phone: telefonoLimpio, 
         currency: moneda 
       });
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+      
+      // Actualizar localStorage con los datos guardados
+      const userActualizado = {
+        ...JSON.parse(localStorage.getItem('user') || '{}'),
+        name: nombre,
+        phone: telefonoLimpio,
+        currency: moneda
+      };
+      localStorage.setItem('user', JSON.stringify(userActualizado));
+      
       setSuccess('Cambios guardados correctamente');
       setTimeout(() => setSuccess(''), 3000);
     } catch (error) {
+      console.log('Error completo:', error.response?.data);
       setServerError(error.response?.data?.message || 'Error al guardar cambios');
     } finally {
       setLoading(false);
