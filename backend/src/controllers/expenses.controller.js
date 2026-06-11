@@ -19,6 +19,20 @@ const createExpense = async (req, res) => {
     return res.status(400).json({ message: 'Monto, categoría y fecha son requeridos' });
   }
 
+  const expenseDate = new Date(date);
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+  const minDate = new Date();
+  minDate.setFullYear(minDate.getFullYear() - 1);
+  minDate.setHours(0, 0, 0, 0);
+
+  if (expenseDate > today) {
+    return res.status(400).json({ message: 'No puedes registrar gastos con fecha futura' });
+  }
+  if (expenseDate < minDate) {
+    return res.status(400).json({ message: 'No puedes registrar gastos con más de un año de antigüedad' });
+  }
+
   try {
     const [result] = await pool.query(
       'INSERT INTO expenses (user_id, amount, category, description, date) VALUES (?, ?, ?, ?, ?)',
@@ -35,6 +49,20 @@ const createExpense = async (req, res) => {
 const updateExpense = async (req, res) => {
   const { id } = req.params;
   const { amount, category, description, date } = req.body;
+
+  const expenseDate = new Date(date);
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+  const minDate = new Date();
+  minDate.setFullYear(minDate.getFullYear() - 1);
+  minDate.setHours(0, 0, 0, 0);
+
+  if (expenseDate > today) {
+    return res.status(400).json({ message: 'No puedes registrar gastos con fecha futura' });
+  }
+  if (expenseDate < minDate) {
+    return res.status(400).json({ message: 'No puedes registrar gastos con más de un año de antigüedad' });
+  }
 
   try {
     const [existing] = await pool.query(
@@ -123,4 +151,5 @@ const getSummary = async (req, res) => {
     res.status(500).json({ message: 'Error en el servidor', error: error.message });
   }
 };
+
 module.exports = { getExpenses, createExpense, updateExpense, deleteExpense, getSummary };
