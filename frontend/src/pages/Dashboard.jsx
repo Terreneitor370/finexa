@@ -5,9 +5,12 @@ import Breadcrumbs from '../components/Breadcrumbs';
 
 const Dashboard = () => {
   const [balance, setBalance] = useState(0);
-  const [categorias, setCategorias] = useState([]);
-  const [gastosRecientes, setGastosRecientes] = useState([]);
+  const [totalGastado, setTotalGastado] = useState(0);
+  const [totalIngresos, setTotalIngresos] = useState(0);
+  const [categoriasGastos, setCategoriasGastos] = useState([]);
+  const [movimientosRecientes, setMovimientosRecientes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -16,16 +19,70 @@ const Dashboard = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [summaryRes, expensesRes] = await Promise.all([
-        api.get('/expenses/summary'),
-        api.get('/expenses?limit=3')
-      ]);
+      const response = await api.get('/expenses?limit=100');
+      const movimientos = response.data || [];
       
-      setBalance(summaryRes.data.total || 0);
-      setCategorias(summaryRes.data.categories || []);
-      setGastosRecientes(expensesRes.data || []);
+      let ingresosTotal = 0;
+      let gastosTotal = 0;
+      const gastosPorCategoria = {};
+      const movimientosConSigno = [];
+      
+      movimientos.forEach(m => {
+        // FORZAR: Si la categoría es 'ingreso', el monto es positivo
+        let monto = parseFloat(m.amount);
+        const esIngresoPorCategoria = m.category === 'ingreso';
+        
+        if (esIngresoPorCategoria) {
+          monto = Math.abs(monto);
+          ingresosTotal += monto;
+          movimientosConSigno.push({ 
+            ...m, 
+            amount: monto,
+            montoMostrar: `+${monto.toLocaleString()}`, 
+            esIngreso: true
+          });
+        } else if (monto > 0) {
+          ingresosTotal += monto;
+          movimientosConSigno.push({ 
+            ...m, 
+            montoMostrar: `+${monto.toLocaleString()}`, 
+            esIngreso: true
+          });
+        } else {
+          const gastoMonto = Math.abs(monto);
+          gastosTotal += gastoMonto;
+          movimientosConSigno.push({ 
+            ...m, 
+            montoMostrar: `-${gastoMonto.toLocaleString()}`, 
+            esIngreso: false
+          });
+          
+          const cat = m.category;
+          if (!gastosPorCategoria[cat]) gastosPorCategoria[cat] = 0;
+          gastosPorCategoria[cat] += gastoMonto;
+        }
+      });
+      
+      const balanceCalculado = ingresosTotal - gastosTotal;
+      
+      setTotalIngresos(ingresosTotal);
+      setTotalGastado(gastosTotal);
+      setBalance(balanceCalculado);
+      
+      const categoriasArray = Object.keys(gastosPorCategoria).map(cat => ({
+        category: cat,
+        total: gastosPorCategoria[cat]
+      }));
+      setCategoriasGastos(categoriasArray);
+      
+      const recientes = movimientosConSigno
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .slice(0, 5);
+      setMovimientosRecientes(recientes);
+      
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      console.error('Error:', error);
+      setError('Error al cargar los datos');
     } finally {
       setLoading(false);
     }
@@ -33,14 +90,16 @@ const Dashboard = () => {
 
   const getCategoryIcon = (category) => {
     const icons = {
-      'Comida': 'restaurant',
-      'Transporte': 'directions_car',
-      'Hogar': 'home',
-      'Ocio': 'theater_comedy',
-      'Salud': 'medical_services',
-      'Otros': 'more_horiz'
+      'comida': 'restaurant',
+      'transporte': 'directions_car',
+      'entretenimiento': 'theater_comedy',
+      'salud': 'medical_services',
+      'ropa': 'checkroom',
+      'educacion': 'school',
+      'ingreso': 'payments',
+      'otro': 'more_horiz'
     };
-    return icons[category] || 'payments';
+    return icons[category?.toLowerCase()] || 'payments';
   };
 
   if (loading) {
@@ -61,7 +120,7 @@ const Dashboard = () => {
           <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#85f8c4] shadow-sm bg-[#85f8c4] flex items-center justify-center">
             <span className="material-symbols-outlined text-[#006948]">person</span>
           </div>
-          <h1 className="text-[20px] leading-[28px] font-bold text-[#006948]">Finanzas Intuitivas</h1>
+          <h1 className="text-[20px] leading-[28px] font-bold text-[#006948]">Finexa</h1>
         </div>
         <button className="w-10 h-10 flex items-center justify-center rounded-full text-[#006948] hover:bg-[#eff4ff] transition-colors active:scale-95">
           <span className="material-symbols-outlined">notifications</span>
@@ -71,94 +130,98 @@ const Dashboard = () => {
       <Breadcrumbs />
 
       <main className="pt-36 px-5 space-y-6">
-        <section className="bg-[#00855d] p-6 rounded-xl shadow-[0px_4px_12px_rgba(0,0,0,0.05)] text-white relative overflow-hidden">
-          <div className="relative z-10">
-            <p className="text-[12px] leading-[16px] tracking-[0.05em] font-semibold opacity-90 mb-1">BALANCE TOTAL DEL MES</p>
-            <div className="flex items-baseline gap-1">
-              <span className="text-[40px] leading-[48px] tracking-[-0.02em] font-bold">$</span>
-              <span className="text-[40px] leading-[48px] tracking-[-0.02em] font-bold">{balance.toLocaleString()}</span>
-            </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className={`p-4 rounded-xl shadow-md text-white ${balance >= 0 ? 'bg-green-600' : 'bg-red-600'}`}>
+            <p className="text-xs font-semibold opacity-80">BALANCE TOTAL</p>
+            <p className="text-2xl font-bold">${Math.abs(balance).toLocaleString()}</p>
           </div>
-          <div className="absolute -right-12 -top-12 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
-        </section>
+          <div className="bg-red-500 p-4 rounded-xl shadow-md text-white">
+            <p className="text-xs font-semibold opacity-80">TOTAL GASTADO</p>
+            <p className="text-2xl font-bold">${totalGastado.toLocaleString()}</p>
+          </div>
+        </div>
 
-        <section className="bg-white p-6 rounded-xl shadow-[0px_4px_12px_rgba(0,0,0,0.05)]">
-          <h2 className="text-[20px] leading-[28px] font-semibold text-[#3d4a42] mb-6">Gastos por Categoría</h2>
-          <div className="space-y-4">
-            {categorias.length > 0 ? (
-              categorias.map((cat, idx) => {
-                const total = categorias.reduce((sum, c) => sum + (c.total || 0), 1);
-                const percentage = ((cat.total || 0) / total) * 100;
+        {totalIngresos > 0 && (
+          <div className="bg-green-500 p-4 rounded-xl shadow-md text-white">
+            <p className="text-xs font-semibold opacity-80">TOTAL INGRESOS</p>
+            <p className="text-2xl font-bold">+${totalIngresos.toLocaleString()}</p>
+          </div>
+        )}
+
+        {categoriasGastos.length > 0 && (
+          <div className="bg-white p-5 rounded-xl shadow-md">
+            <h2 className="text-lg font-semibold text-gray-700 mb-4">Gastos por Categoría</h2>
+            <div className="space-y-3">
+              {categoriasGastos.map((cat, idx) => {
+                const total = categoriasGastos.reduce((sum, c) => sum + c.total, 1);
+                const porcentaje = (cat.total / total) * 100;
                 return (
                   <div key={idx}>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="text-[#6d7a72]">{cat._id}</span>
-                      <span className="text-[#0b1c30] font-semibold">${(cat.total || 0).toLocaleString()}</span>
+                    <div className="flex justify-between text-sm">
+                      <span className="capitalize text-gray-500">{cat.category}</span>
+                      <span className="font-semibold">${cat.total.toLocaleString()}</span>
                     </div>
-                    <div className="w-full bg-gray-100 rounded-full h-2">
-                      <div className="bg-[#006948] rounded-full h-2" style={{ width: `${percentage}%` }}></div>
+                    <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                      <div className="bg-green-600 rounded-full h-2" style={{ width: `${porcentaje}%` }}></div>
                     </div>
                   </div>
                 );
-              })
-            ) : (
-              <p className="text-center text-gray-400 py-4">No hay gastos registrados</p>
-            )}
+              })}
+            </div>
           </div>
-        </section>
+        )}
 
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-[20px] leading-[28px] font-semibold text-[#3d4a42]">Gastos Recientes</h2>
-            <Link to="/historial" className="text-[#006948] text-[12px] leading-[16px] tracking-[0.05em] font-semibold">
-              VER TODO
-            </Link>
+        <div>
+          <div className="flex justify-between items-center mb-3">
+            <h2 className="text-lg font-semibold text-gray-700">Movimientos Recientes</h2>
+            <Link to="/historial" className="text-green-600 text-xs font-semibold">VER TODO</Link>
           </div>
-          <div className="space-y-3">
-            {gastosRecientes.length > 0 ? (
-              gastosRecientes.map((gasto) => (
-                <div key={gasto._id} className="bg-white p-4 rounded-xl shadow-[0px_4px_12px_rgba(0,0,0,0.05)] flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-[#85f8c4]/30 text-[#006948] flex items-center justify-center">
-                    <span className="material-symbols-outlined">{getCategoryIcon(gasto.category)}</span>
+          <div className="space-y-2">
+            {movimientosRecientes.map((mov) => {
+              const esIngreso = mov.category === 'ingreso';
+              const montoAbs = Math.abs(mov.amount);
+              return (
+                <div key={mov._id} className="bg-white p-3 rounded-xl shadow-sm flex justify-between items-center">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${esIngreso ? 'bg-green-100' : 'bg-red-100'}`}>
+                      <span className={`material-symbols-outlined text-xl ${esIngreso ? 'text-green-600' : 'text-red-500'}`}>
+                        {getCategoryIcon(mov.category)}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-semibold capitalize">{mov.category}</p>
+                      <p className="text-xs text-gray-400">{new Date(mov.date).toLocaleDateString()}</p>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <h3 className="text-[16px] leading-[24px] font-semibold">{gasto.description || gasto.category}</h3>
-                    <p className="text-[12px] text-[#6d7a72]">{new Date(gasto.date).toLocaleDateString()}</p>
-                  </div>
-                  <div className="text-[#ba1a1a] text-[18px] leading-[24px] tracking-[-0.01em] font-semibold">
-                    -${gasto.amount.toLocaleString()}
-                  </div>
+                  <p className={`font-bold ${esIngreso ? 'text-green-600' : 'text-red-500'}`}>
+                    {esIngreso ? '+' : '-'}${montoAbs.toLocaleString()}
+                  </p>
                 </div>
-              ))
-            ) : (
-              <div className="bg-white p-8 rounded-xl text-center text-gray-400">
-                No hay gastos recientes
-              </div>
-            )}
+              );
+            })}
           </div>
-        </section>
+        </div>
       </main>
 
-      <Link
-        to="/agregar-gasto"
-        className="fixed bottom-24 right-6 w-16 h-16 bg-[#006948] text-white rounded-full shadow-[0px_8px_24px_rgba(0,0,0,0.1)] flex items-center justify-center z-50 active:scale-90 transition-transform hover:bg-[#00855d]"
-      >
-        <span className="material-symbols-outlined text-[32px]">add</span>
+      <Link to="/agregar-gasto" className="fixed bottom-24 right-6 w-14 h-14 bg-green-600 text-white rounded-full shadow-lg flex items-center justify-center z-50 hover:bg-green-700 active:scale-95 transition-all">
+        <span className="material-symbols-outlined text-2xl">add</span>
       </Link>
 
-      <nav className="fixed bottom-0 left-0 right-0 w-full z-50 flex justify-around items-center px-4 py-3 bg-white/80 backdrop-blur-lg rounded-t-xl shadow-[0px_-4px_12px_rgba(0,0,0,0.05)] border-t border-[#bccac0]/20">
-        <Link to="/dashboard" className="flex flex-col items-center justify-center text-[#006948] font-bold transition-transform active:scale-90">
-          <span className="material-symbols-outlined mb-1" style={{ fontVariationSettings: "'FILL' 1" }}>dashboard</span>
-          <span className="text-[12px] leading-[16px] tracking-[0.05em] font-semibold mt-1">Inicio</span>
-        </Link>
-        <Link to="/historial" className="flex flex-col items-center justify-center text-[#6d7a72] hover:text-[#006948] transition-colors active:scale-90">
-          <span className="material-symbols-outlined mb-1">history</span>
-          <span className="text-[12px] leading-[16px] tracking-[0.05em] font-semibold mt-1">Historial</span>
-        </Link>
-        <Link to="/perfil" className="flex flex-col items-center justify-center text-[#6d7a72] hover:text-[#006948] transition-colors active:scale-90">
-          <span className="material-symbols-outlined mb-1">person</span>
-          <span className="text-[12px] leading-[16px] tracking-[0.05em] font-semibold mt-1">Perfil</span>
-        </Link>
+      <nav className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md rounded-t-xl shadow-lg border-t border-gray-100 py-2">
+        <div className="flex justify-around items-center">
+          <Link to="/dashboard" className="flex flex-col items-center text-green-600 font-bold">
+            <span className="material-symbols-outlined">dashboard</span>
+            <span className="text-xs mt-1">Inicio</span>
+          </Link>
+          <Link to="/historial" className="flex flex-col items-center text-gray-400 hover:text-green-600">
+            <span className="material-symbols-outlined">history</span>
+            <span className="text-xs mt-1">Historial</span>
+          </Link>
+          <Link to="/perfil" className="flex flex-col items-center text-gray-400 hover:text-green-600">
+            <span className="material-symbols-outlined">person</span>
+            <span className="text-xs mt-1">Perfil</span>
+          </Link>
+        </div>
       </nav>
     </div>
   );

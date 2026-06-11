@@ -32,7 +32,8 @@ const Historial = () => {
       'Hogar': 'home',
       'Ocio': 'theater_comedy',
       'Salud': 'medical_services',
-      'Otros': 'more_horiz'
+      'Otros': 'more_horiz',
+      'ingreso': 'payments'
     };
     return icons[category] || 'payments';
   };
@@ -70,7 +71,7 @@ const Historial = () => {
           <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#85f8c4] shadow-sm bg-[#85f8c4] flex items-center justify-center">
             <span className="material-symbols-outlined text-[#006948]">person</span>
           </div>
-          <h1 className="text-[20px] leading-[28px] font-bold text-[#006948]">Finanzas Intuitivas</h1>
+          <h1 className="text-[20px] leading-[28px] font-bold text-[#006948]">Finexa</h1>
         </div>
         <button className="w-10 h-10 flex items-center justify-center rounded-full text-[#006948] hover:bg-[#eff4ff] transition-colors active:scale-95">
           <span className="material-symbols-outlined">notifications</span>
@@ -104,29 +105,35 @@ const Historial = () => {
             <div key={fecha}>
               <h2 className="text-[12px] leading-[16px] tracking-[0.05em] font-semibold text-[#3d4a42] mb-3 px-1">{fecha}</h2>
               <div className="space-y-3">
-                {gastosDelDia.map((gasto) => (
-                  <div key={gasto._id} className="bg-white rounded-xl p-4 flex items-center justify-between shadow-[0px_4px_12px_rgba(0,0,0,0.05)]">
-                    <div className="flex items-center gap-4 flex-1">
-                      <div className="w-12 h-12 rounded-full bg-[#85f8c4]/30 flex items-center justify-center">
-                        <span className="material-symbols-outlined text-[#006948]">{getCategoryIcon(gasto.category)}</span>
+                {gastosDelDia.map((gasto) => {
+                  const esIngreso = gasto.category === 'ingreso';
+                  const montoAbs = Math.abs(gasto.amount);
+                  return (
+                    <div key={gasto._id} className="bg-white rounded-xl p-4 flex items-center justify-between shadow-[0px_4px_12px_rgba(0,0,0,0.05)]">
+                      <div className="flex items-center gap-4 flex-1">
+                        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${esIngreso ? 'bg-green-100' : 'bg-[#85f8c4]/30'}`}>
+                          <span className={`material-symbols-outlined ${esIngreso ? 'text-green-600' : 'text-[#006948]'}`}>
+                            {getCategoryIcon(gasto.category)}
+                          </span>
+                        </div>
+                        <div>
+                          <h3 className="text-[16px] leading-[24px] font-semibold capitalize">{gasto.description || gasto.category}</h3>
+                          <p className="text-[12px] leading-[16px] text-[#6d7a72]">{gasto.category}</p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="text-[16px] leading-[24px] font-semibold">{gasto.description || gasto.category}</h3>
-                        <p className="text-[12px] leading-[16px] text-[#6d7a72]">{gasto.category} • {new Date(gasto.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                      <div className={`text-[18px] leading-[24px] tracking-[-0.01em] font-semibold ${esIngreso ? 'text-green-600' : 'text-red-500'}`}>
+                        {esIngreso ? '+' : '-'}${montoAbs.toLocaleString()}
                       </div>
                     </div>
-                    <div className="text-[#ba1a1a] text-[18px] leading-[24px] tracking-[-0.01em] font-semibold">
-                      -${gasto.amount.toLocaleString()}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ))}
 
           {gastosFiltrados.length === 0 && (
             <div className="bg-white p-8 rounded-xl text-center text-gray-400">
-              No hay gastos registrados
+              No hay movimientos registrados
             </div>
           )}
         </div>
