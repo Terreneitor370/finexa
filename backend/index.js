@@ -7,6 +7,7 @@ require('dotenv').config();
 const authRoutes = require('./src/routes/auth.routes');
 const expensesRoutes = require('./src/routes/expenses.routes');
 
+
 const app = express();
 
 // Seguridad
@@ -24,6 +25,7 @@ const authLimiter = rateLimit({
 app.use('/api/auth', authLimiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/expenses', expensesRoutes);
+
 
 app.get('/', (req, res) => {
   res.json({ message: 'Finexa API corriendo' });
