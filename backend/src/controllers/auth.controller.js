@@ -100,5 +100,65 @@ const login = async (req, res) => {
     res.status(500).json({ message: 'Error en el servidor', error: error.message });
   }
 };
+const getProfile = async (req, res) => {
+  try {
+    const [users] = await pool.query(
+      'SELECT id, name, email, phone, currency FROM users WHERE id = ?',
+      [req.userId]
+    );
+    if (users.length === 0) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+    res.json(users[0]);
+  } catch (error) {
+    res.status(500).json({ message: 'Error en el servidor', error: error.message });
+  }
+};
 
-module.exports = { register, login, validateRegister, validateLogin };
+const updateProfile = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  const { name, phone, currency } = req.body;
+
+  try {
+    await pool.query(
+      'UPDATE users SET name = ?, phone = ?, currency = ? WHERE id = ?',
+      [name, phone || null, currency || 'MXN', req.userId]
+    );
+
+    const [updated] = await pool.query(
+      'SELECT id, name, email, phone, currency FROM users WHERE id = ?',
+      [req.userId]
+    );
+    res.json(updated[0]);
+  } catch (error) {
+    res.status(500).json({ message: 'Error en el servidor', error: error.message });
+  }
+};
+
+const validateUpdateProfile = [
+  body('name')
+    .trim()
+    .notEmpty().withMessage('El nombre es requerido')
+    .isLength({ min: 2 }).withMessage('El nombre debe tener al menos 2 caracteres')
+    .matches(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/).withMessage('El nombre solo puede contener letras'),
+  body('phone')
+    .optional()
+    .matches(/^[0-9]{10,15}$/).withMessage('El teléfono debe tener entre 10 y 15 dígitos'),
+  body('currency')
+    .optional()
+    .isIn(['MXN', 'USD', 'EUR']).withMessage('Moneda no válida'),
+];
+
+module.exports = { 
+  register, 
+  login, 
+  validateRegister, 
+  validateLogin,
+  getProfile,
+  updateProfile,
+  validateUpdateProfile
+};
