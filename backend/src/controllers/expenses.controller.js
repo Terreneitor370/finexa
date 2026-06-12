@@ -1,5 +1,57 @@
 const pool = require('../db/connection');
 
+const categoriasValidas = ['comida','transporte','entretenimiento','salud','ropa','educacion','otro','ingreso'];
+
+const validarMonto = (amount) => {
+  const amountNum = parseFloat(amount);
+  if (isNaN(amountNum) || Math.abs(amountNum) < 1 || Math.abs(amountNum) > 99999999.99) {
+    return 'El monto debe ser entre $1.00 y $99,999,999.99';
+  }
+  return null;
+};
+
+const validarCategoria = (category, amountNum) => {
+  if (!categoriasValidas.includes(category)) {
+    return 'Categoría no válida';
+  }
+  if (category === 'ingreso' && amountNum < 0) {
+    return 'Un ingreso debe tener monto positivo';
+  }
+  if (category !== 'ingreso' && amountNum > 0) {
+    return 'Un gasto debe tener monto negativo';
+  }
+  return null;
+};
+
+const validarFecha = (date) => {
+  const expenseDate = new Date(date);
+  if (isNaN(expenseDate.getTime())) {
+    return 'Fecha no válida';
+  }
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+  const minDate = new Date();
+  minDate.setFullYear(minDate.getFullYear() - 1);
+  minDate.setHours(0, 0, 0, 0);
+  if (expenseDate > today) {
+    return 'No puedes registrar gastos con fecha futura';
+  }
+  if (expenseDate < minDate) {
+    return 'No puedes registrar gastos con más de un año de antigüedad';
+  }
+  return null;
+};
+
+const validarDescripcion = (description) => {
+  if (description && description.length > 255) {
+    return 'La descripción no puede exceder 255 caracteres';
+  }
+  if (description && /<[^>]*>/g.test(description)) {
+    return 'La descripción contiene caracteres no permitidos';
+  }
+  return null;
+};
+
 const getExpenses = async (req, res) => {
   try {
     const [expenses] = await pool.query(
@@ -18,33 +70,26 @@ const createExpense = async (req, res) => {
   if (!amount || !category || !date) {
     return res.status(400).json({ message: 'Monto, categoría y fecha son requeridos' });
   }
-  const amountNum = parseFloat(amount);
- if (isNaN(amountNum) || Math.abs(amountNum) < 1 || Math.abs(amountNum) > 99999999.99) {
-  return res.status(400).json({ message: 'El monto debe ser entre $1.00 y $99,999,999.99' });
-  }
-  if (Math.abs(amountNum) > 99999999.99) {
-    return res.status(400).json({ message: 'El monto no puede exceder $99,999,999.99' });
-  }
-  const expenseDate = new Date(date);
-  const today = new Date();
-  today.setHours(23, 59, 59, 999);
-  const minDate = new Date();
-  minDate.setFullYear(minDate.getFullYear() - 1);
-  minDate.setHours(0, 0, 0, 0);
 
-  if (expenseDate > today) {
-    return res.status(400).json({ message: 'No puedes registrar gastos con fecha futura' });
-  }
-  if (expenseDate < minDate) {
-    return res.status(400).json({ message: 'No puedes registrar gastos con más de un año de antigüedad' });
-  }
+  const amountNum = parseFloat(amount);
+
+  const errorMonto = validarMonto(amount);
+  if (errorMonto) return res.status(400).json({ message: errorMonto });
+
+  const errorCategoria = validarCategoria(category, amountNum);
+  if (errorCategoria) return res.status(400).json({ message: errorCategoria });
+
+  const errorFecha = validarFecha(date);
+  if (errorFecha) return res.status(400).json({ message: errorFecha });
+
+  const errorDescripcion = validarDescripcion(description);
+  if (errorDescripcion) return res.status(400).json({ message: errorDescripcion });
 
   try {
     const [result] = await pool.query(
       'INSERT INTO expenses (user_id, amount, category, description, date) VALUES (?, ?, ?, ?, ?)',
       [req.userId, amount, category, description || null, date]
     );
-
     const [newExpense] = await pool.query('SELECT * FROM expenses WHERE id = ?', [result.insertId]);
     res.status(201).json(newExpense[0]);
   } catch (error) {
@@ -55,23 +100,24 @@ const createExpense = async (req, res) => {
 const updateExpense = async (req, res) => {
   const { id } = req.params;
   const { amount, category, description, date } = req.body;
-  const amountNum = parseFloat(amount);
-  if (isNaN(amountNum) || Math.abs(amountNum) > 99999999.99) {
-    return res.status(400).json({ message: 'El monto no puede exceder $99,999,999.99' });
-  }
-  const expenseDate = new Date(date);
-  const today = new Date();
-  today.setHours(23, 59, 59, 999);
-  const minDate = new Date();
-  minDate.setFullYear(minDate.getFullYear() - 1);
-  minDate.setHours(0, 0, 0, 0);
 
-  if (expenseDate > today) {
-    return res.status(400).json({ message: 'No puedes registrar gastos con fecha futura' });
+  if (!amount || !category || !date) {
+    return res.status(400).json({ message: 'Monto, categoría y fecha son requeridos' });
   }
-  if (expenseDate < minDate) {
-    return res.status(400).json({ message: 'No puedes registrar gastos con más de un año de antigüedad' });
-  }
+
+  const amountNum = parseFloat(amount);
+
+  const errorMonto = validarMonto(amount);
+  if (errorMonto) return res.status(400).json({ message: errorMonto });
+
+  const errorCategoria = validarCategoria(category, amountNum);
+  if (errorCategoria) return res.status(400).json({ message: errorCategoria });
+
+  const errorFecha = validarFecha(date);
+  if (errorFecha) return res.status(400).json({ message: errorFecha });
+
+  const errorDescripcion = validarDescripcion(description);
+  if (errorDescripcion) return res.status(400).json({ message: errorDescripcion });
 
   try {
     const [existing] = await pool.query(
