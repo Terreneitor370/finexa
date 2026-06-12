@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://2.25.170.208:3001/api',
+  baseURL: 'https://finexa.idgs8-2.tech/api',
   headers: {
     'Content-Type': 'application/json',
   },
