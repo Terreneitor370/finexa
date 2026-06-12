@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import Breadcrumbs from '../components/Breadcrumbs';
 
@@ -31,6 +31,10 @@ const AgregarGasto = () => {
       newErrors.monto = 'El monto es obligatorio';
     } else if (isNaN(monto) || Number(monto) <= 0) {
       newErrors.monto = 'El monto debe ser un número mayor a 0';
+    } else if (parseFloat(monto) < 0.01) {
+      newErrors.monto = 'El monto mínimo es $0.01';
+    } else if (parseFloat(monto) > 99999999.99) {
+      newErrors.monto = 'El monto no puede exceder $99,999,999.99';
     }
     
     if (tipo === 'gasto' && !categoria) {
@@ -81,7 +85,6 @@ const AgregarGasto = () => {
     }
   };
 
-  // Título dinámico según el tipo
   const tituloBreadcrumb = tipo === 'ingreso' ? 'Agregar Ingreso' : 'Agregar Gasto';
 
   return (
@@ -94,7 +97,6 @@ const AgregarGasto = () => {
         <div className="w-10"></div>
       </header>
 
-      {/* Breadcrumbs con título personalizado */}
       <Breadcrumbs customTitle={tituloBreadcrumb} />
 
       <main className="pt-36 px-5 max-w-md mx-auto pb-8">
@@ -104,32 +106,22 @@ const AgregarGasto = () => {
           </div>
         )}
 
-        {/* Selector de tipo */}
         <section className="mt-6">
           <div className="flex gap-3 mb-4">
             <button
               type="button"
-              onClick={() => {
-                setTipo('gasto');
-                setCategoria('comida');
-              }}
+              onClick={() => { setTipo('gasto'); setCategoria('comida'); }}
               className={`flex-1 py-3 rounded-xl font-semibold transition-all ${
-                tipo === 'gasto'
-                  ? 'bg-red-500 text-white'
-                  : 'bg-gray-100 text-gray-500'
+                tipo === 'gasto' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-500'
               }`}
             >
               Gasto
             </button>
             <button
               type="button"
-              onClick={() => {
-                setTipo('ingreso');
-              }}
+              onClick={() => { setTipo('ingreso'); }}
               className={`flex-1 py-3 rounded-xl font-semibold transition-all ${
-                tipo === 'ingreso'
-                  ? 'bg-green-500 text-white'
-                  : 'bg-gray-100 text-gray-500'
+                tipo === 'ingreso' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-500'
               }`}
             >
               Ingreso
@@ -137,7 +129,6 @@ const AgregarGasto = () => {
           </div>
         </section>
 
-        {/* Monto */}
         <section className="mt-6 flex flex-col items-center">
           <label className="text-[12px] leading-[16px] tracking-[0.05em] font-semibold text-[#3d4a42] uppercase mb-2">
             {tipo === 'ingreso' ? 'MONTO DEL INGRESO' : 'MONTO DEL GASTO'}
@@ -156,13 +147,13 @@ const AgregarGasto = () => {
               className="w-full bg-transparent border-none focus:ring-0 text-[40px] leading-[48px] tracking-[-0.02em] font-bold text-[#0b1c30] placeholder:text-[#cbdbf5] text-center outline-none"
               placeholder="0.00"
               step="0.01"
-              min="0"
+              min="0.01"
+              max="99999999.99"
             />
           </div>
           {errors.monto && <p className="text-red-500 text-xs mt-1">{errors.monto}</p>}
         </section>
 
-        {/* Categorías - Solo para gastos */}
         {tipo === 'gasto' && (
           <section className="mt-6">
             <div className="flex items-center justify-between mb-4">
@@ -176,9 +167,7 @@ const AgregarGasto = () => {
                   type="button"
                   onClick={() => setCategoria(cat.nombre)}
                   className={`flex flex-col items-center justify-center p-4 rounded-2xl transition-all active:scale-95 ${
-                    categoria === cat.nombre
-                      ? 'bg-red-500 text-white'
-                      : 'bg-[#dce9ff] text-[#0b1c30]'
+                    categoria === cat.nombre ? 'bg-red-500 text-white' : 'bg-[#dce9ff] text-[#0b1c30]'
                   }`}
                 >
                   <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 shadow-sm ${
@@ -196,7 +185,6 @@ const AgregarGasto = () => {
           </section>
         )}
 
-        {/* Fecha */}
         <section className="mt-6">
           <label className="text-[12px] leading-[16px] tracking-[0.05em] font-semibold text-[#3d4a42] block mb-2">Fecha</label>
           <div className="flex items-center bg-[#F1F5F9] rounded-xl px-4 py-4 focus-within:ring-2 focus-within:ring-[#006948] transition-all">
@@ -210,17 +198,23 @@ const AgregarGasto = () => {
           </div>
         </section>
 
+        <section className="mt-6">
+          <label className="text-[12px] leading-[16px] tracking-[0.05em] font-semibold text-[#3d4a42] block mb-2">Descripción (opcional)</label>
+          <textarea
+            value={descripcion}
+            onChange={(e) => setDescripcion(e.target.value)}
+            className="w-full min-h-[112px] resize-none rounded-xl border border-[#d7dde3] bg-white px-4 py-3 text-[16px] leading-[24px] text-[#0b1c30] outline-none focus:border-[#006948] focus:ring-2 focus:ring-[#006948]/10"
+            placeholder="Añade una nota sobre el gasto o ingreso"
+          />
+        </section>
       </main>
 
-      {/* Botón Guardar */}
       <div className="fixed bottom-0 left-0 right-0 w-full p-5 bg-white/80 backdrop-blur-lg border-t border-[#bccac0]/20 z-50">
         <button
           onClick={handleSubmit}
           disabled={loading}
           className={`w-full h-14 rounded-full font-bold text-lg flex items-center justify-center shadow-lg active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed ${
-            tipo === 'ingreso' 
-              ? 'bg-green-600 text-white' 
-              : 'bg-red-500 text-white'
+            tipo === 'ingreso' ? 'bg-green-600 text-white' : 'bg-red-500 text-white'
           }`}
         >
           <span className="material-symbols-outlined mr-2">{tipo === 'ingreso' ? 'add' : 'remove'}</span>
