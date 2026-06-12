@@ -190,7 +190,8 @@ const forgotPassword = async (req, res) => {
       [email, token, expiresAt]
     );
 
-    const resetLink = `http://2.25.170.208:8094/reset-password?token=${token}`;
+  const resetLink = `https://finexa.idgs8-2.tech/reset-password?token=${token}`;
+
     await sendResetEmail(user.name, email, resetLink);
 
     res.json({ message: 'Si el email existe, recibirás un enlace de recuperación' });
