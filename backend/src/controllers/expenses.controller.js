@@ -19,7 +19,10 @@ const createExpense = async (req, res) => {
     return res.status(400).json({ message: 'Monto, categoría y fecha son requeridos' });
   }
   const amountNum = parseFloat(amount);
-  if (isNaN(amountNum) || Math.abs(amountNum) > 99999999.99) {
+ if (isNaN(amountNum) || Math.abs(amountNum) < 1 || Math.abs(amountNum) > 99999999.99) {
+  return res.status(400).json({ message: 'El monto debe ser entre $1.00 y $99,999,999.99' });
+  }
+  if (Math.abs(amountNum) > 99999999.99) {
     return res.status(400).json({ message: 'El monto no puede exceder $99,999,999.99' });
   }
   const expenseDate = new Date(date);

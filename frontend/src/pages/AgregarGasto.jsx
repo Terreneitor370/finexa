@@ -31,8 +31,8 @@ const AgregarGasto = () => {
       newErrors.monto = 'El monto es obligatorio';
     } else if (isNaN(monto) || Number(monto) <= 0) {
       newErrors.monto = 'El monto debe ser un número mayor a 0';
-    } else if (parseFloat(monto) < 0.01) {
-      newErrors.monto = 'El monto mínimo es $0.01';
+    } else if (parseFloat(monto) < 1) {
+      newErrors.monto = 'El monto mínimo es $1.00';
     } else if (parseFloat(monto) > 99999999.99) {
       newErrors.monto = 'El monto no puede exceder $99,999,999.99';
     }
@@ -147,7 +147,7 @@ const AgregarGasto = () => {
               className="w-full bg-transparent border-none focus:ring-0 text-[40px] leading-[48px] tracking-[-0.02em] font-bold text-[#0b1c30] placeholder:text-[#cbdbf5] text-center outline-none"
               placeholder="0.00"
               step="0.01"
-              min="0.01"
+              min="1"
               max="99999999.99"
             />
           </div>
