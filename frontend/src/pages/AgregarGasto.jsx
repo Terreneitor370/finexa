@@ -129,7 +129,7 @@ const AgregarGasto = () => {
           </div>
         </section>
 
-        <section className="mt-6 flex flex-col items-center">
+          <section className="mt-6 flex flex-col items-center">
           <label className="text-[12px] leading-[16px] tracking-[0.05em] font-semibold text-[#3d4a42] uppercase mb-2">
             {tipo === 'ingreso' ? 'MONTO DEL INGRESO' : 'MONTO DEL GASTO'}
           </label>
@@ -138,22 +138,20 @@ const AgregarGasto = () => {
               {tipo === 'ingreso' ? '+' : '-'}
             </span>
             <input
-              type="number"
+              type="text"
+              inputMode="decimal"
               value={monto}
               onChange={(e) => {
-                setMonto(e.target.value);
+                const valor = e.target.value.replace(/[^0-9.]/g, '');
+                setMonto(valor);
                 if (errors.monto) setErrors({ ...errors, monto: '' });
               }}
               className="w-full bg-transparent border-none focus:ring-0 text-[40px] leading-[48px] tracking-[-0.02em] font-bold text-[#0b1c30] placeholder:text-[#cbdbf5] text-center outline-none"
               placeholder="0.00"
-              step="0.01"
-              min="1"
-              max="99999999.99"
             />
           </div>
           {errors.monto && <p className="text-red-500 text-xs mt-1">{errors.monto}</p>}
         </section>
-
         {tipo === 'gasto' && (
           <section className="mt-6">
             <div className="flex items-center justify-between mb-4">
