@@ -68,7 +68,7 @@ const Perfil = () => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    navigate('/');
+    window.location.replace('/');
   };
 
   return (
