@@ -45,6 +45,11 @@ const AgregarGasto = () => {
       newErrors.fecha = 'La fecha es obligatoria';
     }
     
+    // Validación de descripción
+    if (descripcion && descripcion.length > 255) {
+      newErrors.descripcion = 'La descripción no puede exceder los 255 caracteres';
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -115,7 +120,7 @@ const AgregarGasto = () => {
                 tipo === 'gasto' ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-500'
               }`}
             >
-              Gasto
+              💸 Gasto
             </button>
             <button
               type="button"
@@ -124,12 +129,12 @@ const AgregarGasto = () => {
                 tipo === 'ingreso' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-500'
               }`}
             >
-              Ingreso
+              💰 Ingreso
             </button>
           </div>
         </section>
 
-          <section className="mt-6 flex flex-col items-center">
+        <section className="mt-6 flex flex-col items-center">
           <label className="text-[12px] leading-[16px] tracking-[0.05em] font-semibold text-[#3d4a42] uppercase mb-2">
             {tipo === 'ingreso' ? 'MONTO DEL INGRESO' : 'MONTO DEL GASTO'}
           </label>
@@ -152,6 +157,7 @@ const AgregarGasto = () => {
           </div>
           {errors.monto && <p className="text-red-500 text-xs mt-1">{errors.monto}</p>}
         </section>
+
         {tipo === 'gasto' && (
           <section className="mt-6">
             <div className="flex items-center justify-between mb-4">
@@ -197,13 +203,29 @@ const AgregarGasto = () => {
         </section>
 
         <section className="mt-6">
-          <label className="text-[12px] leading-[16px] tracking-[0.05em] font-semibold text-[#3d4a42] block mb-2">Descripción (opcional)</label>
+          <div className="flex justify-between items-center mb-2">
+            <label className="text-[12px] leading-[16px] tracking-[0.05em] font-semibold text-[#3d4a42]">
+              Descripción (opcional)
+            </label>
+            <span className={`text-[11px] ${descripcion.length > 255 ? 'text-red-500' : 'text-gray-400'}`}>
+              {descripcion.length}/255
+            </span>
+          </div>
           <textarea
             value={descripcion}
-            onChange={(e) => setDescripcion(e.target.value)}
-            className="w-full min-h-[112px] resize-none rounded-xl border border-[#d7dde3] bg-white px-4 py-3 text-[16px] leading-[24px] text-[#0b1c30] outline-none focus:border-[#006948] focus:ring-2 focus:ring-[#006948]/10"
+            onChange={(e) => {
+              const texto = e.target.value;
+              if (texto.length <= 255) {
+                setDescripcion(texto);
+                if (errors.descripcion) setErrors({ ...errors, descripcion: '' });
+              }
+            }}
+            className={`w-full min-h-[112px] resize-none rounded-xl border px-4 py-3 text-[16px] leading-[24px] text-[#0b1c30] outline-none focus:ring-2 focus:ring-[#006948]/10 transition-all ${
+              errors.descripcion ? 'border-red-500' : 'border-[#d7dde3] focus:border-[#006948]'
+            }`}
             placeholder="Añade una nota sobre el gasto o ingreso"
           />
+          {errors.descripcion && <p className="text-red-500 text-xs mt-1">{errors.descripcion}</p>}
         </section>
       </main>
 
